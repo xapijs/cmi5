@@ -9,7 +9,7 @@ const extensions = [
 ];
 
 export default {
-  input: "./src/index.ts",
+  input: "./src/Cmi5.ts",
   plugins: [
     resolve({
       extensions: extensions
@@ -24,7 +24,7 @@ export default {
     {
       file: pkg.main,
       format: "umd",
-      name: "cmi5"
+      name: "Cmi5"
     },
     {
       file: pkg.module,

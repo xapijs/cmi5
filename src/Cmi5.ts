@@ -1,13 +1,16 @@
-import { XAPI, Context, Statement, Agent, ResultScore, Verbs, StatementObject, InteractionActivityDefinition, LanguageMap, InteractionComponent, ObjectiveActivity, getSearchQueryParamsAsObject, calculateISO8601Duration } from "@xapi/xapi";
+import XAPI, { Context, Statement, Agent, ResultScore, StatementObject, InteractionActivityDefinition, LanguageMap, InteractionComponent, ObjectiveActivity } from "@xapi/xapi";
 import { LaunchParameters, LaunchData, LearnerPreferences, Period, AuthTokenResponse, Performance, PerformanceCriteria, NumericCriteria, NumericRange, NumericExact } from "./interfaces";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
 import { default as deepmerge } from "deepmerge";
+
+export * from "./interfaces";
 
 /**
  * Experience API cmi5 Profile (Quartz - 1st Edition)
  * Reference: https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md
  */
-export class Cmi5 {
+export default class Cmi5 {
+
   private launchParameters: LaunchParameters;
   private launchData!: LaunchData;
   private learnerPreferences!: LearnerPreferences; 
@@ -17,15 +20,15 @@ export class Cmi5 {
   constructor() {
     this.launchParameters = this.getLaunchParametersFromLMS();
     if (!this.launchParameters.fetch) {
-      throw Error("no fetch parameter found.");
+      throw Error("Unable to construct, no `fetch` parameter found in URL.");
     } else if (!this.launchParameters.endpoint) {
-      throw Error("no endpoint parameter found");
+      throw Error("Unable to construct, no `endpoint` parameter found in URL");
     } else if (!this.launchParameters.actor) {
-      throw Error("no actor parameter found.");
+      throw Error("Unable to construct, no `actor` parameter found in URL.");
     } else if (!this.launchParameters.activityId) {
-      throw Error("no activityId parameter found.");
+      throw Error("Unable to construct, no `activityId` parameter found in URL.");
     } else if (!this.launchParameters.registration) {
-      throw Error("no registration parameter found.");
+      throw Error("Unable to construct, no `registration` parameter found in URL.");
     }
   }
 
@@ -73,7 +76,7 @@ export class Cmi5 {
         // 9.5.3 Completion - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#953-completion
         completion: true,
         // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#completed-statement
-        duration: calculateISO8601Duration(this.initialisedDate, new Date())
+        duration: XAPI.calculateISO8601Duration(this.initialisedDate, new Date())
       },
       context: {
         contextActivities: {
@@ -100,7 +103,7 @@ export class Cmi5 {
         // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
         success: true,
         // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#passed-statement
-        duration: calculateISO8601Duration(this.initialisedDate, new Date())
+        duration: XAPI.calculateISO8601Duration(this.initialisedDate, new Date())
       },
       context: {
         contextActivities: {
@@ -136,7 +139,7 @@ export class Cmi5 {
         // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
         success: false,
         // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#failed-statement
-        duration: calculateISO8601Duration(this.initialisedDate, new Date())
+        duration: XAPI.calculateISO8601Duration(this.initialisedDate, new Date())
       },
       context: {
         contextActivities: {
@@ -160,7 +163,7 @@ export class Cmi5 {
       verb: Cmi5DefinedVerbs.TERMINATED,
       result: {
         // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#terminated-statement
-        duration: calculateISO8601Duration(this.initialisedDate, new Date())
+        duration: XAPI.calculateISO8601Duration(this.initialisedDate, new Date())
       }
     });
   }
@@ -168,7 +171,7 @@ export class Cmi5 {
   // "cmi5 allowed" Statements
   public progress(percent: number): Promise<string[]> {
     return this.sendCmi5AllowedStatement({
-      verb: Verbs.PROGRESSED,
+      verb: XAPI.Verbs.PROGRESSED,
       object: {
         objectType: "Activity",
         id: this.launchParameters.activityId
@@ -341,11 +344,11 @@ export class Cmi5 {
 
   public interaction(testId: string, questionId: string, response: string, interactionDefinition: InteractionActivityDefinition, duration?: Period, objective?: ObjectiveActivity): Promise<string[]> {
     return this.sendCmi5AllowedStatement({
-      verb: Verbs.ANSWERED,
+      verb: XAPI.Verbs.ANSWERED,
       result: {
         response: response,
         ...(duration ? {
-          duration: calculateISO8601Duration(duration.start, duration.end)
+          duration: XAPI.calculateISO8601Duration(duration.start, duration.end)
         } : {})
       },
       object: {
@@ -366,7 +369,7 @@ export class Cmi5 {
   }
 
   private getLaunchParametersFromLMS(): LaunchParameters {
-    return getSearchQueryParamsAsObject(window.location.href) as LaunchParameters;
+    return XAPI.getSearchQueryParamsAsObject(window.location.href) as LaunchParameters;
   }
 
   private getAuthTokenFromLMS(fetchUrl: string): Promise<AuthTokenResponse> {
