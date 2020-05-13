@@ -381,7 +381,7 @@ export default class Cmi5 {
   }
 
   private getLaunchDataFromLMS(): Promise<LaunchData> {
-    return this.connection.getActivityState(this.launchParameters.actor, this.launchParameters.activityId, "LMS.LaunchData", this.launchParameters.registration)
+    return this.connection.getState(this.launchParameters.actor, this.launchParameters.activityId, "LMS.LaunchData", this.launchParameters.registration)
     .then((launchData) => {
       return launchData as LaunchData;
     });
