@@ -177,7 +177,7 @@ This returns a `Promise` containing an array with the resulting statementId if s
 
 Passes the AU. Required for satisfaction if `LaunchData.moveOn` is equal to `Passed`, `CompletedAndPassed` or `CompletedOrPassed`.
 
-#### Example
+#### Examples
 
 ##### Example 1: Pass
 
@@ -261,7 +261,7 @@ This returns a `Promise` containing an array with the resulting statementId if s
 
 Fails the AU. Required to mark the AU as Failed if `LaunchData.moveOn` is equal to `Passed`, `CompletedAndPassed` or `CompletedOrPassed`.
 
-#### Example
+#### Examples
 
 ##### Example 1: Fail
 
@@ -331,48 +331,277 @@ This returns a `Promise` containing an array with the resulting statementId if s
 
 ### progress
 
-**TODO**
+Sends the learner's progress for the AU.
+
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+
+// initialize etc
+
+cmi5.progress(50);
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+|percent|number|true|The learners progress of the AU as a percentage.|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful.
 
 ### interactionTrueFalse
 
+Sends the learner's boolean based answer to an interaction.
+
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+import { LanguageMap } from "@xapi/xapi";
+
+const cmi5 = new Cmi5();
+
+const testId = "test1";
+const questionId = "is-true-true";
+const answer = true;
+const correctAnswer = true;
+const name: LanguageMap = {
+  "en-US": "Is True True"
+};
+const description: LanguageMap = {
+  "en-US": "In a boolean context, is true truthy?"
+};
+
+cmi5.interactionTrueFalse(testId, questionId, answer, correctAnswer, name, description);
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+|answer|boolean|true|The answer supplied by the learner.|
+|correctAnswer|boolean|false|The correct answer decided by the learning designer.|
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful.
+
+<!-- ### interactionChoice
+
 **TODO**
 
-### interactionChoice
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionFillIn
 
 **TODO**
 
-### interactionFillIn
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionLongFillIn
 
 **TODO**
 
-### interactionLongFillIn
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionLikert
 
 **TODO**
 
-### interactionLikert
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionMatching
 
 **TODO**
 
-### interactionMatching
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionPerformance
 
 **TODO**
 
-### interactionPerformance
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionSequencing
 
 **TODO**
 
-### interactionSequencing
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionNumeric
 
 **TODO**
 
-### interactionNumeric
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interactionOther
 
 **TODO**
 
-### interactionOther
+#### Example
+
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### interaction
 
 **TODO**
 
-### interaction
+#### Example
 
-**TODO**
+```ts
+import Cmi5 from "@xapi/cmi5";
+
+const cmi5 = new Cmi5();
+```
+
+#### Parameters
+
+|Parameter|Type|Reqiured|Description|
+|-|-|-|-|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
