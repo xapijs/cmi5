@@ -391,31 +391,82 @@ cmi5.interactionTrueFalse(testId, questionId, answer, correctAnswer, name, descr
 |correctAnswer|boolean|false|The correct answer decided by the learning designer.|
 |name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
 |description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
 This returns a `Promise` containing an array with the resulting statementId if successful.
 
-<!-- ### interactionChoice
+### interactionChoice
 
-**TODO**
+Sends the learner's choice based answer to an interaction.
 
 #### Example
 
 ```ts
 import Cmi5 from "@xapi/cmi5";
+import { LanguageMap, InteractionComponent } from "@xapi/xapi";
 
 const cmi5 = new Cmi5();
+
+const testId = "test1";
+const questionId = "first-two-choices";
+const answerIds: string[] = ["choice1", "choice4"];
+const correctAnswerIds: string[] = ["choice1", "choice2"];
+const choices: InteractionComponent[] = [{
+  id: "choice1",
+  description: {
+    "en-US": "Choice 1"
+  }
+},
+{
+  id: "choice2",
+  description: {
+    "en-US": "Choice 2"
+  }
+},
+{
+  id: "choice3",
+  description: {
+    "en-US": "Choice 3"
+  }
+},
+{
+  id: "choice4",
+  description: {
+    "en-US": "Choice 4"
+  }
+}];
+
+const name: LanguageMap = {
+  "en-US": "First Two Choices"
+}; 
+const description: LanguageMap = {
+  "en-US": "What are the first two choices?"
+};
+
+cmi5.interactionChoice(testId, questionId, answerIds, correctAnswerIds, choices, name, description);
 ```
 
 #### Parameters
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+|answerIds|string[]|true|The Id(s) of the answer(s) supplied by the learner.|
+|correctAnswerIds|string[]|false|The correct Id(s) of the answer(s) decided by the learning designer.|
+|choices|[InteractionComponent](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ActivityDefinition/InteractionActivityDefinition.ts)[]|false|The identifiers and descriptions of the possible answers.|
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
+
 
 #### Returns
 
-This returns a `Promise` containing an array with the resulting statementId if successful. -->
+This returns a `Promise` containing an array with the resulting statementId if successful.
 
 <!-- ### interactionFillIn
 
@@ -433,6 +484,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -454,6 +512,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -475,6 +540,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -496,6 +568,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -517,6 +596,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -538,6 +624,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -559,6 +652,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -580,6 +680,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
@@ -601,6 +708,13 @@ const cmi5 = new Cmi5();
 
 |Parameter|Type|Required|Description|
 |-|-|-|-|
+|testId|string|true|The identifier of the test.|
+|questionId|string|true|The identifier of the question.|
+
+|name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
+|description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
+|duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
+|objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
 
 #### Returns
 
