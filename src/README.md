@@ -60,6 +60,7 @@ cmi5.initialize();
   - [interactionNumeric](#interactionNumeric)
   - [interactionOther](#interactionOther)
   - [interaction](#interaction)
+  - [sendCmi5AllowedStatement](#sendCmi5AllowedStatement)
 
 ## Cmi5
 
@@ -468,16 +469,30 @@ cmi5.interactionChoice(testId, questionId, answerIds, correctAnswerIds, choices,
 
 This returns a `Promise` containing an array with the resulting statementId if successful.
 
-<!-- ### interactionFillIn
+### interactionFillIn
 
-**TODO**
+Sends the learner's short text based answer to an interaction.
 
 #### Example
 
 ```ts
 import Cmi5 from "@xapi/cmi5";
+import { LanguageMap } from "@xapi/xapi";
 
 const cmi5 = new Cmi5();
+
+const testId = "test1";
+const questionId = "hello";
+const answers = ["whos there?"];
+const correctAnswers = ["world", "World"];
+const name: LanguageMap = {
+  "en-US": "Hello"
+};
+const description: LanguageMap = {
+  "en-US": "Hello?"
+};
+
+cmi5.interactionFillIn(testId, questionId, answers, correctAnswers, name, description);
 ```
 
 #### Parameters
@@ -486,7 +501,8 @@ const cmi5 = new Cmi5();
 |-|-|-|-|
 |testId|string|true|The identifier of the test.|
 |questionId|string|true|The identifier of the question.|
-
+|answers|string[]|true|The answer(s) to the question.|
+|correctAnswers|string[]|The correct possible answer(s) to the question.|
 |name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
 |description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
 |duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
@@ -494,18 +510,32 @@ const cmi5 = new Cmi5();
 
 #### Returns
 
-This returns a `Promise` containing an array with the resulting statementId if successful. -->
+This returns a `Promise` containing an array with the resulting statementId if successful.
 
-<!-- ### interactionLongFillIn
+### interactionLongFillIn
 
-**TODO**
+Sends the learner's long text based answer to an interaction.
 
 #### Example
 
 ```ts
 import Cmi5 from "@xapi/cmi5";
+import { LanguageMap } from "@xapi/xapi";
 
 const cmi5 = new Cmi5();
+
+const testId = "test1";
+const questionId = "hello-long";
+const answers = ["whos there?"];
+const correctAnswers = ["world", "World"];
+const name: LanguageMap = {
+  "en-US": "Hello"
+};
+const description: LanguageMap = {
+  "en-US": "Hello?"
+};
+
+cmi5.interactionFillIn(testId, questionId, answers, correctAnswers, name, description);
 ```
 
 #### Parameters
@@ -514,7 +544,8 @@ const cmi5 = new Cmi5();
 |-|-|-|-|
 |testId|string|true|The identifier of the test.|
 |questionId|string|true|The identifier of the question.|
-
+|answers|string[]|true|The answer(s) to the question.|
+|correctAnswers|string[]|The correct possible answer(s) to the question.|
 |name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
 |description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
 |duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
@@ -522,11 +553,11 @@ const cmi5 = new Cmi5();
 
 #### Returns
 
-This returns a `Promise` containing an array with the resulting statementId if successful. -->
+This returns a `Promise` containing an array with the resulting statementId if successful.
 
-<!-- ### interactionLikert
+### interactionLikert
 
-**TODO**
+Sends the learner's likert based answer to an interaction.
 
 #### Example
 
@@ -534,6 +565,49 @@ This returns a `Promise` containing an array with the resulting statementId if s
 import Cmi5 from "@xapi/cmi5";
 
 const cmi5 = new Cmi5();
+
+const testId = "test1";
+const questionId = "highest-value";
+const answerId = "likert4";
+const correctAnswerId = "likert4";
+const scale: InteractionComponent[] = [{
+  id: "likert0",
+  description: {
+    "en-US": "Very Unsatisfied"
+  }
+},
+{
+  id: "likert1",
+  description: {
+    "en-US": "Unsatisfied"
+  }
+},
+{
+  id: "likert2",
+  description: {
+    "en-US": "Neutral"
+  }
+},
+{
+  id: "likert3",
+  description: {
+    "en-US": "Satisfied"
+  }
+},
+{
+  id: "likert4",
+  description: {
+    "en-US": "Very Satisfied"
+  }
+}];
+const name: LanguageMap = {
+  "en-US": "Highest Value"
+};
+const description: LanguageMap = {
+  "en-US": "What is the highest value on this scale?"
+};
+
+cmi5.interactionLikert(testId, questionId, answerId, correctAnswerId, scale, name, description)
 ```
 
 #### Parameters
@@ -542,7 +616,9 @@ const cmi5 = new Cmi5();
 |-|-|-|-|
 |testId|string|true|The identifier of the test.|
 |questionId|string|true|The identifier of the question.|
-
+|answerId|string|true|The Id of the answer supplied by the learner.|
+|correctAnswerId|string|false|The correct Id of the answer decided by the learning designer.|
+|scale|[InteractionComponent](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ActivityDefinition/InteractionActivityDefinition.ts)[]|false|The identifiers and descriptions of the likert scale.|
 |name|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The name of the interaction.|
 |description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
 |duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
@@ -550,7 +626,7 @@ const cmi5 = new Cmi5();
 
 #### Returns
 
-This returns a `Promise` containing an array with the resulting statementId if successful. -->
+This returns a `Promise` containing an array with the resulting statementId if successful.
 
 <!-- ### interactionMatching
 
@@ -715,6 +791,22 @@ const cmi5 = new Cmi5();
 |description|[LanguageMap](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/LanguageMap.ts)|false|The description of the interaction.|
 |duration|[Period](./interfaces/Period.ts)|false|The period it took the learner to perform the interaction.|
 |objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
+
+#### Returns
+
+This returns a `Promise` containing an array with the resulting statementId if successful. -->
+
+<!-- ### sendCmi5AllowedStatement
+
+**TODO**
+
+#### Example
+
+
+
+#### Parameters
+
+
 
 #### Returns
 
