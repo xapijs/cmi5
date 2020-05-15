@@ -246,7 +246,7 @@ cmi5.pass(score, objective);
 ```
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 |score|[ResultScore](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Result.ts)|false|The score achieved by the learner.|
 |objective|[ObjectiveActivity](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Activity/ObjectiveActivity.ts)|false|The objective achieved by the learner.|
@@ -297,7 +297,7 @@ cmi5.fail(score);
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 |score|[ResultScore](https://github.com/xapijs/xapi/blob/master/src/XAPI/interfaces/Statement/Result.ts)|false|The score achieved by the learner.|
 
@@ -347,7 +347,7 @@ cmi5.progress(50);
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 |percent|number|true|The learners progress of the AU as a percentage.|
 
@@ -383,7 +383,7 @@ cmi5.interactionTrueFalse(testId, questionId, answer, correctAnswer, name, descr
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 |testId|string|true|The identifier of the test.|
 |questionId|string|true|The identifier of the question.|
@@ -410,7 +410,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -431,7 +431,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -452,7 +452,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -473,7 +473,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -494,7 +494,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -515,7 +515,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -536,7 +536,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -557,7 +557,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -578,7 +578,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
@@ -599,7 +599,7 @@ const cmi5 = new Cmi5();
 
 #### Parameters
 
-|Parameter|Type|Reqiured|Description|
+|Parameter|Type|Required|Description|
 |-|-|-|-|
 
 #### Returns
