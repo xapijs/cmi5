@@ -50,7 +50,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@xapi/xapi": "file:../xapi",
+    "@xapi/xapi": "^0.2.0",
     "deepmerge": "^4.2.2"
   }
 }
