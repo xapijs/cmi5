@@ -1,7 +1,7 @@
 {
   "name": "@xapi/cmi5",
   "version": "0.0.1",
-  "description": "A JavaScript library for communicating with an LRS over the xAPI cmi5 profile.",
+  "description": "Communicate over the xAPI cmi5 profile using JavaScript.",
   "main": "dist/Cmi5.js",
   "module": "dist/Cmi5.esm.js",
   "typings": "dist/types/Cmi5.d.ts",
