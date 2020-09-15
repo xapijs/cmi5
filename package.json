@@ -2,8 +2,9 @@
   "name": "@xapi/cmi5",
   "version": "0.0.1",
   "description": "Communicate over the xAPI cmi5 profile using JavaScript.",
-  "main": "dist/Cmi5.js",
+  "main": "dist/Cmi5.cjs.js",
   "module": "dist/Cmi5.esm.js",
+  "browser": "dist/Cmi5.umd.js",
   "typings": "dist/types/Cmi5.d.ts",
   "files": [
     "dist/**/*"
@@ -38,15 +39,16 @@
     "@babel/preset-typescript": "^7.9.0",
     "@rollup/plugin-babel": "^5.0.0",
     "@rollup/plugin-commonjs": "^11.1.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^7.1.3",
     "@types/node": "^13.11.1",
     "@typescript-eslint/eslint-plugin": "^2.29.0",
     "@typescript-eslint/parser": "^2.29.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
-    "crypto-js": "^4.0.0",
     "eslint": "^6.8.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.7.5",
+    "rollup-plugin-terser": "^7.0.2",
     "typescript": "^3.7.5"
   },
   "dependencies": {
