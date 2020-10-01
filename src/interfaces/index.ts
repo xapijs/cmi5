@@ -6,3 +6,5 @@ export * from "./NumericCriteria";
 export * from "./Performance";
 export * from "./PerformanceCriteria";
 export * from "./Period";
+export * from "./SendStatementOptions";
+export * from "./StatementTransform";
