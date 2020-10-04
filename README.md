@@ -4,6 +4,6 @@
 
 Communicate over the xAPI cmi5 profile using JavaScript.
 
-[Documentation](https://cookiecookson.gitbook.io/xapijs/cmi5-profile-library/getting-started)
+[Documentation](https://www.xapijs.dev/cmi5-profile-library/getting-started)
 
 [Demo](https://github.com/xapijs/cmi5-demo)
