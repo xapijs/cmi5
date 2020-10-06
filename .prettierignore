@@ -1,0 +1,6 @@
+build
+.cache
+lib
+node_modules
+public
+static

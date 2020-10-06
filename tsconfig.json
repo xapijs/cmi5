@@ -8,11 +8,6 @@
     "declarationDir": "./dist/types",
     "declaration": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "**/*.spec.ts",
-    "**/demo"
-  ]
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts", "**/demo"]
 }

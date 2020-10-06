@@ -6,7 +6,12 @@ export interface LaunchData {
   launchMethod?: "OwnWindow" | "AnyWindow";
   launchParameters?: string;
   masteryScore?: number;
-  moveOn: "Passed" | "Completed" | "CompletedAndPassed" | "CompletedOrPassed" | "NotApplicable";
+  moveOn:
+    | "Passed"
+    | "Completed"
+    | "CompletedAndPassed"
+    | "CompletedOrPassed"
+    | "NotApplicable";
   returnURL?: string;
   entitlementKey?: { courseStructure?: string; alternate?: string };
 }
