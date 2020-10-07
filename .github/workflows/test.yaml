@@ -9,8 +9,6 @@ jobs:
         env:
           GIT_TRACE: 1
           GIT_CURL_VERBOSE: 1
-        with:
-          ref: ${{ github.head_ref }}
       - name: Install
         run: npm ci
       - name: Run prettier
