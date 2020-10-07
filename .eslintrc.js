@@ -3,15 +3,14 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   env: {
     browser: true,
-    node: true
+    node: true,
   },
-  plugins: [
-    "@typescript-eslint"
-  ],
+  plugins: ["@typescript-eslint"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
   ],
   rules: {
     quotes: ["error", "double"],
@@ -20,6 +19,6 @@ module.exports = {
     "@typescript-eslint/no-inferrable-types": ["off"],
     "@typescript-eslint/ban-ts-ignore": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
-    "@typescript-eslint/ban-types": ["off"]
-  }
+    "@typescript-eslint/ban-types": ["off"],
+  },
 };

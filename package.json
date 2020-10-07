@@ -15,7 +15,10 @@
     "build:js": "rollup --config",
     "build:types": "tsc --emitDeclarationOnly",
     "build": "npm run clean && npm run build:types && npm run build:js",
-    "lint": "eslint . --ext .ts,.js"
+    "format": "prettier --write '**/*.{js,jsx,json,ts,tsx}'",
+    "lint": "eslint . --ext .ts,.js",
+    "test:format": "prettier --check '**/*.{js,jsx,json,ts,tsx}'",
+    "test:types": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -46,6 +49,9 @@
     "@typescript-eslint/parser": "^2.29.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.7.5",
     "rollup-plugin-terser": "^7.0.2",

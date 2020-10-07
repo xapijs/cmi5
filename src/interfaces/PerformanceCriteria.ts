@@ -4,10 +4,15 @@ interface PerformanceCriteriaBase {
   id: string;
 }
 
-interface PerformanceCriteriaRange extends PerformanceCriteriaBase, NumericRange {}
+interface PerformanceCriteriaRange
+  extends PerformanceCriteriaBase,
+    NumericRange {}
 
 interface PerformanceCriteriaExact extends PerformanceCriteriaBase {
   exact?: number | string;
 }
 
-export type PerformanceCriteria = PerformanceCriteriaBase | PerformanceCriteriaRange | PerformanceCriteriaExact;
+export type PerformanceCriteria =
+  | PerformanceCriteriaBase
+  | PerformanceCriteriaRange
+  | PerformanceCriteriaExact;
