@@ -1,6 +1,2 @@
-build
-.cache
-lib
+dist
 node_modules
-public
-static
