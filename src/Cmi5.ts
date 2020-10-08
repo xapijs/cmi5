@@ -141,7 +141,7 @@ export default class Cmi5 {
       });
   }
 
-  public complete(options: SendStatementOptions = {}): AxiosPromise<string[]> {
+  public complete(options?: SendStatementOptions): AxiosPromise<string[]> {
     // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
     if (this.launchData.launchMode !== "Normal")
       return Promise.reject(
@@ -737,7 +737,7 @@ export default class Cmi5 {
 
   private sendCmi5DefinedStatement(
     statement: Partial<Statement>,
-    options: SendStatementOptions = {}
+    options?: SendStatementOptions
   ): AxiosPromise<string[]> {
     // 9.4 Object - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#94-object
     const object: StatementObject = {
@@ -765,7 +765,7 @@ export default class Cmi5 {
 
   public sendCmi5AllowedStatement(
     statement: Partial<Statement>,
-    options: SendStatementOptions = {}
+    options?: SendStatementOptions
   ): AxiosPromise<string[]> {
     // 9.2 Actor - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#92-actor
     const actor: Agent = this.launchParameters.actor;
