@@ -68,17 +68,5 @@
     "@xapi/xapi": "^0.6.0",
     "axios": "^0.20.0",
     "deepmerge": "^4.2.2"
-  },
-  "jest": {
-    "testURL": "http://example.com",
-    "transform": {
-      ".(ts|tsx)": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
   }
 }
