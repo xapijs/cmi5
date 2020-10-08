@@ -1,4 +1,3 @@
-const { defaults } = require("jest-config");
 module.exports = {
   testURL: "http://example.com",
   transform: {
