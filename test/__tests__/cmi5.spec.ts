@@ -369,6 +369,26 @@ describe("Cmi5", () => {
       );
     });
 
+    it("assigns an ObjectiveActivity when passed as an option", async () => {
+      const cmi5 = await initialize(mockCmi5);
+      cmi5.pass(0.98, { objectiveActivity: DEFAULT_OBJECTIVE_ACTIVITY });
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+          context: expect.objectContaining({
+            contextActivities: expect.objectContaining({
+              parent: [DEFAULT_OBJECTIVE_ACTIVITY],
+            }),
+          }),
+          result: expect.objectContaining({
+            success: true,
+            score: {
+              scaled: 0.98,
+            },
+          }),
+        })
+      );
+    });
+
     it("applies optional statement transform when provided", async () => {
       const cmi5 = await initialize(mockCmi5);
       cmi5.pass(0.75, {

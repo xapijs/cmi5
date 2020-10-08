@@ -15,6 +15,7 @@ import {
   LearnerPreferences,
   Period,
   AuthTokenResponse,
+  PassOptions,
   Performance,
   PerformanceCriteria,
   NumericCriteria,
@@ -175,7 +176,7 @@ export default class Cmi5 {
 
   public pass(
     score?: ResultScore | number,
-    objectiveOrOptions?: ObjectiveActivity | SendStatementOptions
+    objectiveOrOptions?: ObjectiveActivity | PassOptions
   ): AxiosPromise<string[]> {
     // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
     if (this.launchData.launchMode !== "Normal")
@@ -193,7 +194,12 @@ export default class Cmi5 {
       return Promise.reject(new Error("Learner has not met Mastery Score"));
     const [objective, options] = _isObjectiveActivity(objectiveOrOptions)
       ? [objectiveOrOptions as ObjectiveActivity, undefined]
-      : [undefined, objectiveOrOptions as SendStatementOptions];
+      : [
+          (objectiveOrOptions as PassOptions)
+            ? (objectiveOrOptions as PassOptions).objectiveActivity
+            : undefined,
+          objectiveOrOptions as SendStatementOptions,
+        ];
     return this.sendCmi5DefinedStatement(
       {
         // 9.3.4 Passed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#934-passed
@@ -218,7 +224,7 @@ export default class Cmi5 {
             // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
             ...(objective
               ? {
-                  parent: [objectiveOrOptions as ObjectiveActivity],
+                  parent: [objective as ObjectiveActivity],
                 }
               : {}),
           },
