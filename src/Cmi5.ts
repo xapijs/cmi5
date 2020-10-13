@@ -15,17 +15,38 @@ import {
   LearnerPreferences,
   Period,
   AuthTokenResponse,
+  PassOptions,
   Performance,
   PerformanceCriteria,
   NumericCriteria,
   NumericRange,
   NumericExact,
+  SendStatementOptions,
 } from "./interfaces";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
 import { default as deepmerge } from "deepmerge";
 import axios, { AxiosPromise } from "axios";
 
 export * from "./interfaces";
+
+function _isObjectiveActivity(x?: any): boolean {
+  return (
+    x &&
+    x.objectType === "Activity" &&
+    typeof x.id === "string" &&
+    x.definition &&
+    typeof x.definition === "object" &&
+    x.definition.type === "http://adlnet.gov/expapi/activities/objective"
+  );
+}
+
+function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
+  return !isNaN(Number(s))
+    ? {
+        scaled: Number(s),
+      }
+    : (s as ResultScore);
+}
 
 /**
  * Experience API cmi5 Profile (Quartz - 1st Edition)
@@ -55,6 +76,28 @@ export default class Cmi5 {
         "Unable to construct, no `registration` parameter found in URL."
       );
     }
+  }
+
+  public static get isCmiAvailable(): boolean {
+    if (!window || typeof window !== "object") {
+      return false;
+    }
+    if (!window.location || typeof window.location.search !== "string") {
+      return false;
+    }
+    const p = new URLSearchParams(window.location.search);
+    return Boolean(
+      // true if has all required cmi5 query params
+      p.get("fetch") &&
+        p.get("endpoint") &&
+        p.get("actor") &&
+        p.get("registration") &&
+        p.get("activityId")
+    );
+  }
+
+  public get isAuthenticated(): boolean {
+    return Boolean(this.connection);
   }
 
   public getLaunchParameters(): LaunchParameters {
@@ -88,7 +131,7 @@ export default class Cmi5 {
         return this.getLearnerPreferencesFromLMS();
       })
       .then((result) => {
-        this.learnerPreferences = result.data;
+        this.learnerPreferences = result.data || {};
       })
       .then(() => {
         this.initialisedDate = new Date();
@@ -99,117 +142,150 @@ export default class Cmi5 {
       });
   }
 
-  public complete(): AxiosPromise<string[]> {
+  public complete(options?: SendStatementOptions): AxiosPromise<string[]> {
     // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal") return Promise.reject();
-    return this.sendCmi5DefinedStatement({
-      // 9.3.3 Completed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#933-completed
-      verb: Cmi5DefinedVerbs.COMPLETED,
-      result: {
-        // 9.5.3 Completion - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#953-completion
-        completion: true,
-        // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#completed-statement
-        duration: XAPI.calculateISO8601Duration(
-          this.initialisedDate,
-          new Date()
-        ),
-      },
-      context: {
-        contextActivities: {
-          category: [
-            // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-            Cmi5ContextActivity.MOVE_ON,
-          ],
+    if (this.launchData.launchMode !== "Normal")
+      return Promise.reject(
+        new Error("Can only send COMPLETED when launchMode is 'Normal'")
+      );
+    return this.sendCmi5DefinedStatement(
+      {
+        // 9.3.3 Completed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#933-completed
+        verb: Cmi5DefinedVerbs.COMPLETED,
+        result: {
+          // 9.5.3 Completion - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#953-completion
+          completion: true,
+          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#completed-statement
+          duration: XAPI.calculateISO8601Duration(
+            this.initialisedDate,
+            new Date()
+          ),
+        },
+        context: {
+          contextActivities: {
+            category: [
+              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
+              Cmi5ContextActivity.MOVE_ON,
+            ],
+          },
         },
       },
-    });
+      options
+    );
   }
 
   public pass(
-    score?: ResultScore,
-    objective?: ObjectiveActivity
+    score?: ResultScore | number,
+    objectiveOrOptions?: ObjectiveActivity | PassOptions
   ): AxiosPromise<string[]> {
     // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal") return Promise.reject();
+    if (this.launchData.launchMode !== "Normal")
+      return Promise.reject(
+        new Error("Can only send PASSED when launchMode is 'Normal'")
+      );
+    const rScore = _toResultScore(score);
     // Best Practice #4 - AU Mastery Score - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
     if (
       this.launchData.masteryScore &&
-      score.scaled < this.launchData.masteryScore
+      (!rScore ||
+        isNaN(Number(rScore.scaled)) ||
+        rScore.scaled < this.launchData.masteryScore)
     )
-      return Promise.reject("Learner has not met Mastery Score");
-    return this.sendCmi5DefinedStatement({
-      // 9.3.4 Passed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#934-passed
-      verb: Cmi5DefinedVerbs.PASSED,
-      result: {
-        // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
-        ...(score ? { score: score } : {}),
-        // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
-        success: true,
-        // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#passed-statement
-        duration: XAPI.calculateISO8601Duration(
-          this.initialisedDate,
-          new Date()
-        ),
-      },
-      context: {
-        contextActivities: {
-          category: [
-            // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-            Cmi5ContextActivity.MOVE_ON,
-          ],
-          // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-          ...(objective
+      return Promise.reject(new Error("Learner has not met Mastery Score"));
+    const [objective, options] = _isObjectiveActivity(objectiveOrOptions)
+      ? [objectiveOrOptions as ObjectiveActivity, undefined]
+      : [
+          (objectiveOrOptions as PassOptions)
+            ? (objectiveOrOptions as PassOptions).objectiveActivity
+            : undefined,
+          objectiveOrOptions as SendStatementOptions,
+        ];
+    return this.sendCmi5DefinedStatement(
+      {
+        // 9.3.4 Passed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#934-passed
+        verb: Cmi5DefinedVerbs.PASSED,
+        result: {
+          // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
+          ...(rScore ? { score: rScore } : {}),
+          // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
+          success: true,
+          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#passed-statement
+          duration: XAPI.calculateISO8601Duration(
+            this.initialisedDate,
+            new Date()
+          ),
+        },
+        context: {
+          contextActivities: {
+            category: [
+              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
+              Cmi5ContextActivity.MOVE_ON,
+            ],
+            // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+            ...(objective
+              ? {
+                  parent: [objective as ObjectiveActivity],
+                }
+              : {}),
+          },
+          ...(this.launchData.masteryScore
             ? {
-                parent: [objective],
+                extensions: {
+                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
+                    .launchData.masteryScore,
+                },
               }
             : {}),
         },
-        ...(this.launchData.masteryScore
-          ? {
-              extensions: {
-                "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
-                  .launchData.masteryScore,
-              },
-            }
-          : {}),
       },
-    });
+      options
+    );
   }
 
-  public fail(score?: ResultScore): AxiosPromise<string[]> {
+  public fail(
+    score?: ResultScore | number,
+    options?: SendStatementOptions
+  ): AxiosPromise<string[]> {
     // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal") return Promise.reject();
-    return this.sendCmi5DefinedStatement({
-      // 9.3.5 Failed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#935-failed
-      verb: Cmi5DefinedVerbs.FAILED,
-      result: {
-        // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
-        ...(score ? { score: score } : {}),
-        // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
-        success: false,
-        // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#failed-statement
-        duration: XAPI.calculateISO8601Duration(
-          this.initialisedDate,
-          new Date()
-        ),
-      },
-      context: {
-        contextActivities: {
-          category: [
-            // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-            Cmi5ContextActivity.MOVE_ON,
-          ],
+    if (this.launchData.launchMode !== "Normal")
+      return Promise.reject(
+        new Error("Can only send FAILED when launchMode is 'Normal'")
+      );
+    const rScore = _toResultScore(score);
+    return this.sendCmi5DefinedStatement(
+      {
+        // 9.3.5 Failed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#935-failed
+        verb: Cmi5DefinedVerbs.FAILED,
+        result: {
+          // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
+          ...(rScore ? { score: rScore } : {}),
+          // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
+          success: false,
+          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#failed-statement
+          duration: XAPI.calculateISO8601Duration(
+            this.initialisedDate,
+            new Date()
+          ),
         },
-        ...(this.launchData.masteryScore
-          ? {
-              extensions: {
-                "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
-                  .launchData.masteryScore,
-              },
-            }
-          : {}),
+        context: {
+          contextActivities: {
+            category: [
+              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
+              Cmi5ContextActivity.MOVE_ON,
+            ],
+          },
+          ...(this.launchData.masteryScore
+            ? {
+                extensions: {
+                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
+                    .launchData.masteryScore,
+                },
+              }
+            : {}),
+        },
       },
-    });
+      options
+    );
   }
 
   public terminate(): AxiosPromise<string[]> {
@@ -640,10 +716,7 @@ export default class Cmi5 {
   private getAuthTokenFromLMS(
     fetchUrl: string
   ): AxiosPromise<AuthTokenResponse> {
-    return axios({
-      method: "POST",
-      url: fetchUrl,
-    });
+    return axios.post<AuthTokenResponse>(fetchUrl);
   }
 
   private getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
@@ -669,7 +742,8 @@ export default class Cmi5 {
   }
 
   private sendCmi5DefinedStatement(
-    statement: Partial<Statement>
+    statement: Partial<Statement>,
+    options?: SendStatementOptions
   ): AxiosPromise<string[]> {
     // 9.4 Object - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#94-object
     const object: StatementObject = {
@@ -692,11 +766,12 @@ export default class Cmi5 {
       cmi5DefinedStatementRequirements,
       statement,
     ]);
-    return this.sendCmi5AllowedStatement(mergedStatement);
+    return this.sendCmi5AllowedStatement(mergedStatement, options);
   }
 
   public sendCmi5AllowedStatement(
-    statement: Partial<Statement>
+    statement: Partial<Statement>,
+    options?: SendStatementOptions
   ): AxiosPromise<string[]> {
     // 9.2 Actor - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#92-actor
     const actor: Agent = this.launchParameters.actor;
@@ -711,10 +786,14 @@ export default class Cmi5 {
       timestamp: timestamp,
       context: context,
     };
-    const mergedStatement: Partial<Statement> = deepmerge.all([
+    const mergedStatement = deepmerge.all([
       cmi5AllowedStatementRequirements,
       statement,
-    ]);
-    return this.connection.sendStatement(mergedStatement as Statement);
+    ]) as Statement;
+    const sendStatement =
+      options && typeof options.transform === "function"
+        ? options.transform(mergedStatement)
+        : mergedStatement;
+    return this.connection.sendStatement(sendStatement);
   }
 }

@@ -6,8 +6,13 @@
     "target": "es2015",
     "module": "es2015",
     "declarationDir": "./dist/types",
-    "declaration": true
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./src/*", "node_modules/*"]
+    }
   },
   "include": ["src"],
-  "exclude": ["**/*.spec.ts", "**/demo"]
+  "exclude": ["dist", "node_modules", "test", "**/demo"]
 }

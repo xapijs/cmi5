@@ -17,8 +17,11 @@
     "build": "npm run clean && npm run build:types && npm run build:js",
     "format": "prettier --write '**/*.{js,jsx,json,ts,tsx}'",
     "lint": "eslint . --ext .ts,.js",
+    "test": "jest test/*",
+    "test:audit": "npm audit --audit-level=moderate --production",
     "test:format": "prettier --check '**/*.{js,jsx,json,ts,tsx}'",
-    "test:types": "tsc --noEmit"
+    "test:types": "tsc --noEmit",
+    "test:watch": "jest test/* --watch"
   },
   "repository": {
     "type": "git",
@@ -47,14 +50,19 @@
     "@types/node": "^13.11.1",
     "@typescript-eslint/eslint-plugin": "^2.29.0",
     "@typescript-eslint/parser": "^2.29.0",
+    "axios-mock-adapter": "^1.18.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.12.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-jest": "^24.0.2",
+    "jest": "^26.4.2",
+    "mockdate": "^3.0.2",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.7.5",
     "rollup-plugin-terser": "^7.0.2",
+    "ts-jest": "^26.4.1",
     "typescript": "^3.7.5"
   },
   "dependencies": {
