@@ -1,6 +1,6 @@
 {
   "name": "@xapi/cmi5",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Communicate over the xAPI cmi5 profile using JavaScript.",
   "main": "dist/Cmi5.cjs.js",
   "module": "dist/Cmi5.esm.js",
