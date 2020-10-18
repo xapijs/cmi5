@@ -56,7 +56,7 @@ export default class Cmi5 {
   private launchParameters: LaunchParameters;
   private launchData!: LaunchData;
   private learnerPreferences!: LearnerPreferences;
-  private connection!: XAPI;
+  private xapi!: XAPI;
   private initialisedDate!: Date;
 
   constructor() {
@@ -97,7 +97,7 @@ export default class Cmi5 {
   }
 
   public get isAuthenticated(): boolean {
-    return Boolean(this.connection);
+    return Boolean(this.xapi);
   }
 
   public getLaunchParameters(): LaunchParameters {
@@ -118,7 +118,7 @@ export default class Cmi5 {
     return this.getAuthTokenFromLMS(this.launchParameters.fetch)
       .then((response) => {
         const authToken: string = response.data["auth-token"];
-        this.connection = new XAPI(
+        this.xapi = new XAPI(
           this.launchParameters.endpoint,
           `Basic ${authToken}`
         );
@@ -720,7 +720,7 @@ export default class Cmi5 {
   }
 
   private getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
-    return this.connection.getState(
+    return this.xapi.getState(
       this.launchParameters.actor,
       this.launchParameters.activityId,
       "LMS.LaunchData",
@@ -729,7 +729,7 @@ export default class Cmi5 {
   }
 
   private getLearnerPreferencesFromLMS(): AxiosPromise<LearnerPreferences> {
-    return this.connection
+    return this.xapi
       .getAgentProfile(this.launchParameters.actor, "cmi5LearnerPreferences")
       .then(
         (result) => {
@@ -794,6 +794,6 @@ export default class Cmi5 {
       options && typeof options.transform === "function"
         ? options.transform(mergedStatement)
         : mergedStatement;
-    return this.connection.sendStatement(sendStatement);
+    return this.xapi.sendStatement(sendStatement);
   }
 }
