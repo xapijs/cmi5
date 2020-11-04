@@ -1,31 +1,32 @@
 import XAPI, {
-  Context,
-  Statement,
   Agent,
-  ResultScore,
-  StatementObject,
+  Context,
   InteractionActivityDefinition,
-  LanguageMap,
   InteractionComponent,
+  LanguageMap,
   ObjectiveActivity,
+  ResultScore,
+  Statement,
+  StatementObject,
 } from "@xapi/xapi";
 import {
-  LaunchParameters,
-  LaunchData,
-  LearnerPreferences,
-  Period,
   AuthTokenResponse,
+  LaunchData,
+  LaunchParameters,
+  LearnerPreferences,
   PassOptions,
   Performance,
   PerformanceCriteria,
+  Period,
+  MoveOnOptions,
   NumericCriteria,
-  NumericRange,
   NumericExact,
+  NumericRange,
   SendStatementOptions,
 } from "./interfaces";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
 import { default as deepmerge } from "deepmerge";
-import axios, { AxiosPromise } from "axios";
+import axios, { AxiosPromise, AxiosResponse } from "axios";
 
 export * from "./interfaces";
 
@@ -705,6 +706,72 @@ export default class Cmi5 {
           }
         : {}),
     });
+  }
+
+  private setResultScore(resultScore: ResultScore, s: Statement): Statement {
+    return {
+      ...s,
+      result: {
+        ...(s.result || {}),
+        score: resultScore,
+      },
+    };
+  }
+
+  public async moveOn(options?: MoveOnOptions): Promise<string[]> {
+    let effectiveOptions = options;
+    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
+    if (this.launchData.launchMode !== "Normal")
+      return Promise.reject(
+        new Error("Can only send FAILED when launchMode is 'Normal'")
+      );
+    const newStatementIds: string[] = [];
+    if (effectiveOptions?.score) {
+      const rScore = _toResultScore(effectiveOptions?.score);
+      if (this.launchData.masteryScore) {
+        if (rScore.scaled >= this.launchData.masteryScore) {
+          this.appendStatementIds(
+            await this.pass(rScore, effectiveOptions),
+            newStatementIds
+          );
+        } else {
+          this.appendStatementIds(
+            await this.fail(rScore, effectiveOptions),
+            newStatementIds
+          );
+        }
+      } else {
+        const _setResultScore = (s: Statement): Statement => {
+          return this.setResultScore(rScore, s);
+        };
+        const transformProvided = effectiveOptions?.transform;
+        effectiveOptions = {
+          ...(effectiveOptions || {}),
+          transform:
+            typeof transformProvided === "function"
+              ? // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                (s) => transformProvided(_setResultScore(s))
+              : // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                (s) => _setResultScore(s),
+        };
+      }
+    }
+    this.appendStatementIds(
+      await this.complete(effectiveOptions),
+      newStatementIds
+    );
+    if (!options?.disableSendTerminated) {
+      this.appendStatementIds(await this.terminate(), newStatementIds);
+    }
+    return newStatementIds;
+  }
+
+  private appendStatementIds(
+    response: AxiosResponse<string[]>,
+    toIds: string[]
+  ): void {
+    // eslint-disable-next-line prefer-spread
+    toIds.push.apply(toIds, response.data);
   }
 
   private getLaunchParametersFromLMS(): LaunchParameters {

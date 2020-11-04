@@ -2,7 +2,7 @@ import { ObjectiveActivity, Statement, Verb } from "@xapi/xapi";
 import MockDate from "mockdate";
 import Cmi5 from "../../src/Cmi5";
 import { Cmi5DefinedVerbs } from "../../src/constants";
-import { MockCmi5Helper, DEFAULT_LAUNCH_PARAMETERS } from "../helpers";
+import { MockCmi5Helper, DEFAULT_LAUNCH_PARAMETERS, rmProp } from "../helpers";
 
 const DEFAULT_OBJECTIVE_ACTIVITY: ObjectiveActivity = {
   objectType: "Activity",
@@ -16,10 +16,21 @@ function mockDateFloorSeconds(now: number): void {
   MockDate.set(now - (now % 1000));
 }
 
-async function initialize(mockCmi5: MockCmi5Helper): Promise<Cmi5> {
+interface InitializeOpts {
+  mockLaunchData?: () => void;
+}
+
+async function initialize(
+  mockCmi5: MockCmi5Helper,
+  opts?: InitializeOpts
+): Promise<Cmi5> {
   mockCmi5.mockLocation();
   mockCmi5.mockFetch();
-  mockCmi5.mockGetState();
+  if (opts?.mockLaunchData) {
+    opts.mockLaunchData();
+  } else {
+    mockCmi5.mockGetState();
+  }
   mockCmi5.mockGetAgentProfile();
   mockCmi5.mockSendStatement();
   const cmi5 = new Cmi5();
@@ -571,6 +582,165 @@ describe("Cmi5", () => {
           })
         );
       });
+    });
+  });
+
+  describe("moveOn", () => {
+    [
+      { masteryScore: 0.8, score: 0.9 },
+      { masteryScore: 0.6, score: 0.6 },
+    ].forEach((ex) => {
+      it(`sends PASSED and COMPLETED for scores at or above launch-data masteryScore (${ex.score} >= ${ex.masteryScore})`, async () => {
+        const cmi5 = await initialize(mockCmi5, {
+          mockLaunchData: () =>
+            mockCmi5.mockLaunchData({
+              masteryScore: ex.masteryScore,
+            }),
+        });
+        await cmi5.moveOn({ score: ex.score });
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+        );
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+            result: expect.objectContaining({
+              score: {
+                scaled: ex.score,
+              },
+            }),
+          })
+        );
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        );
+      });
+    });
+
+    [
+      { masteryScore: 0.8, score: 0.79 },
+      { masteryScore: 0.6, score: 0.1 },
+    ].forEach((ex) => {
+      it(`sends FAILED and COMPLETED for scores below launch-data masteryScore (${ex.score} < ${ex.masteryScore})`, async () => {
+        const cmi5 = await initialize(mockCmi5, {
+          mockLaunchData: () =>
+            mockCmi5.mockLaunchData({
+              masteryScore: ex.masteryScore,
+            }),
+        });
+        await cmi5.moveOn({ score: ex.score });
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+        );
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+            result: expect.objectContaining({
+              score: {
+                scaled: ex.score,
+              },
+            }),
+          })
+        );
+        expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+          expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        );
+      });
+    });
+
+    it("does NOT send PASSED or FAILED when no score provided and launch data has masteryScore", async () => {
+      const cmi5 = await initialize(mockCmi5, {
+        mockLaunchData: () =>
+          mockCmi5.mockLaunchData({
+            masteryScore: 0.9,
+          }),
+      });
+      await cmi5.moveOn();
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+      );
+    });
+
+    it("sets result score on COMPLETED stmt if launch data has no masteryScore", async () => {
+      const cmi5 = await initialize(mockCmi5, {
+        mockLaunchData: () =>
+          mockCmi5.mockGetState({
+            data: rmProp("masteryScore", mockCmi5.fakeLaunchData),
+          }),
+      });
+      const score = 0.9;
+      await cmi5.moveOn({ score });
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+          result: expect.objectContaining({
+            score: {
+              scaled: score,
+            },
+          }),
+        })
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+      );
+    });
+
+    it("sets result score on COMPLETED stmt if launch data has no masteryScore while preserving changes made by transform", async () => {
+      const cmi5 = await initialize(mockCmi5, {
+        mockLaunchData: () =>
+          mockCmi5.mockGetState({
+            data: rmProp("masteryScore", mockCmi5.fakeLaunchData),
+          }),
+      });
+      const score = 0.9;
+      const exampleResultExts = {
+        "http://example.com/my/ext": 1,
+      };
+      await cmi5.moveOn({
+        score,
+        transform: (s) => {
+          return s.verb.id === Cmi5DefinedVerbs.COMPLETED.id
+            ? {
+                ...s,
+                result: {
+                  ...s.result,
+                  extensions: exampleResultExts,
+                },
+              }
+            : s;
+        },
+      });
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+          result: expect.objectContaining({
+            score: {
+              scaled: score,
+            },
+            extensions: exampleResultExts,
+          }),
+        })
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+      );
+      expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
+        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+      );
     });
   });
 });

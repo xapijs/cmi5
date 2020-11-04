@@ -50,6 +50,12 @@ const _setWindowLocation = (newLocation: URL | Location): void => {
   (window as any).location = newLocation;
 };
 
+export function rmProp<T extends object>(propToStrip: string, obj: T): T {
+  const res = { ...obj };
+  delete res[propToStrip];
+  return res;
+}
+
 export type MockCmi5HelperParams = Partial<
   LaunchParameters & { urlBase: string }
 >;
@@ -129,6 +135,15 @@ export class MockCmi5Helper {
             }
       )
     );
+  }
+
+  mockLaunchData(launchData: Partial<LaunchData>): void {
+    this.mockGetState({
+      data: {
+        ...this.fakeLaunchData,
+        ...launchData,
+      },
+    });
   }
 
   mockGetState(fakeResponse?: Partial<AxiosResponse>): void {

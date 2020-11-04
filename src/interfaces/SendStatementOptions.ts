@@ -1,4 +1,4 @@
-import { StatementTransform } from "./StatementTransform";
+import { StatementTransform } from "./";
 
 export interface SendStatementOptions {
   transform?: StatementTransform;
