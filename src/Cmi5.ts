@@ -54,11 +54,23 @@ function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
  * Reference: https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md
  */
 export default class Cmi5 {
+  private static _instance: Cmi5 | null = null;
   private launchParameters: LaunchParameters;
   private launchData!: LaunchData;
   private learnerPreferences!: LearnerPreferences;
   private xapi!: XAPI;
   private initialisedDate!: Date;
+
+  static get instance(): Cmi5 {
+    if (!Cmi5._instance) {
+      Cmi5._instance = new Cmi5();
+    }
+    return Cmi5._instance;
+  }
+
+  static clearInstance(): void {
+    Cmi5._instance = null;
+  }
 
   constructor() {
     this.launchParameters = this.getLaunchParametersFromLMS();
