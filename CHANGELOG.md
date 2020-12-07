@@ -1,3 +1,7 @@
+# 0.4.0 (7 Dec 2020)
+
+- Added singleton access through static `Cmi5.instance()` method
+
 # 0.3.0 (22 Nov 2020)
 
 - Added `moveOn` helper method to handle correct end sequence for AUs
