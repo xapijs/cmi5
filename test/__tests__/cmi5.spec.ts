@@ -23,7 +23,7 @@ interface InitializeOpts {
 async function initialize(
   mockCmi5: MockCmi5Helper,
   opts?: InitializeOpts
-): Promise<Cmi5> {
+): Promise<void> {
   mockCmi5.mockLocation();
   mockCmi5.mockFetch();
   if (opts?.mockLaunchData) {
@@ -33,9 +33,7 @@ async function initialize(
   }
   mockCmi5.mockGetAgentProfile();
   mockCmi5.mockSendStatement();
-  const cmi5 = new Cmi5();
-  await cmi5.initialize();
-  return cmi5;
+  await Cmi5.instance.initialize();
 }
 
 function expectActivityStatement(
@@ -61,6 +59,7 @@ describe("Cmi5", () => {
   let mockCmi5: MockCmi5Helper;
 
   beforeEach(() => {
+    Cmi5.clearInstance();
     mockDateFloorSeconds(Date.now());
     mockCmi5 = new MockCmi5Helper();
   });
@@ -68,6 +67,15 @@ describe("Cmi5", () => {
   afterEach(() => {
     mockCmi5.restore();
     MockDate.reset();
+  });
+
+  describe("Cmi5.get", () => {
+    it("parses launch params from window.location.href", async () => {
+      mockCmi5.mockLocation();
+      expect(Cmi5.instance.getLaunchParameters()).toEqual(
+        DEFAULT_LAUNCH_PARAMETERS
+      );
+    });
   });
 
   describe("constructor", () => {
@@ -90,11 +98,11 @@ describe("Cmi5", () => {
 
   describe("initialize", () => {
     it("authenticates, loads state and profile and posts initialized statement", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      expect(cmi5.isAuthenticated).toEqual(true);
-      expect(cmi5.getLaunchData()).toEqual(mockCmi5.fakeLaunchData);
+      await initialize(mockCmi5);
+      expect(Cmi5.instance.isAuthenticated).toEqual(true);
+      expect(Cmi5.instance.getLaunchData()).toEqual(mockCmi5.fakeLaunchData);
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.INITIALIZED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.INITIALIZED)
       );
     });
 
@@ -102,9 +110,8 @@ describe("Cmi5", () => {
       it(`throws on fetch failed with ${failStatus}`, async () => {
         mockCmi5.mockLocation();
         mockCmi5.mockFetch(failStatus);
-        const cmi5 = new Cmi5();
         expect.assertions(1);
-        await expect(cmi5.initialize()).rejects.toThrow(
+        await expect(Cmi5.instance.initialize()).rejects.toThrow(
           expect.objectContaining({
             response: expect.objectContaining({
               status: failStatus,
@@ -127,7 +134,7 @@ describe("Cmi5", () => {
             url: "activities/state",
           },
         });
-        const cmi5 = new Cmi5();
+        const cmi5 = Cmi5.instance;
         let exception;
         try {
           await cmi5.initialize();
@@ -159,11 +166,10 @@ describe("Cmi5", () => {
           },
         });
         mockCmi5.mockSendStatement();
-        const cmi5 = new Cmi5();
-        await cmi5.initialize();
-        expect(cmi5.getLearnerPreferences()).toEqual({});
+        await Cmi5.instance.initialize();
+        expect(Cmi5.instance.getLearnerPreferences()).toEqual({});
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.INITIALIZED)
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.INITIALIZED)
         );
       });
     });
@@ -180,10 +186,9 @@ describe("Cmi5", () => {
             url: "xapi/statements",
           },
         });
-        const cmi5 = new Cmi5();
         let exception;
         try {
-          await cmi5.initialize();
+          await Cmi5.instance.initialize();
         } catch (err) {
           exception = err;
         }
@@ -203,16 +208,16 @@ describe("Cmi5", () => {
 
   describe("complete", () => {
     it("posts a COMPLETED statement", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.complete();
+      await initialize(mockCmi5);
+      Cmi5.instance.complete();
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED)
       );
     });
 
     it("applies optional statement transform when provided", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.complete({
+      await initialize(mockCmi5);
+      Cmi5.instance.complete({
         transform: (s: Statement) => {
           return {
             ...s,
@@ -226,7 +231,7 @@ describe("Cmi5", () => {
         },
       });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED, {
           context: expect.objectContaining({
             registration: mockCmi5.registration,
             extensions: {
@@ -242,11 +247,11 @@ describe("Cmi5", () => {
       { seconds: 31, expectedDuration: "PT31S" },
     ].forEach((ex) => {
       it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         mockDateFloorSeconds(Date.now() + +ex.seconds * 1000);
-        cmi5.complete();
+        Cmi5.instance.complete();
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED, {
             result: expect.objectContaining({
               duration: ex.expectedDuration,
             }),
@@ -261,10 +266,10 @@ describe("Cmi5", () => {
           ...mockCmi5.fakeLaunchData,
           launchMode: launchMode as any,
         };
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         let exception;
         try {
-          await cmi5.complete();
+          await Cmi5.instance.complete();
         } catch (err) {
           exception = err;
         }
@@ -279,10 +284,10 @@ describe("Cmi5", () => {
 
   describe("passed", () => {
     it("posts a PASSED statement with a result score", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass({ scaled: 0.9 });
+      await initialize(mockCmi5);
+      Cmi5.instance.pass({ scaled: 0.9 });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           result: expect.objectContaining({
             success: true,
             score: {
@@ -294,10 +299,10 @@ describe("Cmi5", () => {
     });
 
     it("posts a PASSED statement with a result score passed as a number", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass(0.75);
+      await initialize(mockCmi5);
+      Cmi5.instance.pass(0.75);
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           result: expect.objectContaining({
             success: true,
             score: {
@@ -313,10 +318,10 @@ describe("Cmi5", () => {
         ...mockCmi5.fakeLaunchData,
         masteryScore: undefined,
       };
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass();
+      await initialize(mockCmi5);
+      Cmi5.instance.pass();
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           result: expect.not.objectContaining({
             score: expect.anything(),
           }),
@@ -325,10 +330,10 @@ describe("Cmi5", () => {
     });
 
     it("throws if passed score is beneath masteryScore", async () => {
-      const cmi5 = await initialize(mockCmi5);
+      await initialize(mockCmi5);
       let exception;
       try {
-        await cmi5.pass(0.1);
+        await Cmi5.instance.pass(0.1);
       } catch (err) {
         exception = err;
       }
@@ -345,10 +350,10 @@ describe("Cmi5", () => {
           ...mockCmi5.fakeLaunchData,
           launchMode: launchMode as any,
         };
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         let exception;
         try {
-          await cmi5.pass();
+          await Cmi5.instance.pass();
         } catch (err) {
           exception = err;
         }
@@ -361,10 +366,10 @@ describe("Cmi5", () => {
     });
 
     it("assigns an ObjectiveActivity when passed as second param", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass(0.6, DEFAULT_OBJECTIVE_ACTIVITY);
+      await initialize(mockCmi5);
+      Cmi5.instance.pass(0.6, DEFAULT_OBJECTIVE_ACTIVITY);
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           context: expect.objectContaining({
             contextActivities: expect.objectContaining({
               parent: [DEFAULT_OBJECTIVE_ACTIVITY],
@@ -381,10 +386,12 @@ describe("Cmi5", () => {
     });
 
     it("assigns an ObjectiveActivity when passed as an option", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass(0.98, { objectiveActivity: DEFAULT_OBJECTIVE_ACTIVITY });
+      await initialize(mockCmi5);
+      Cmi5.instance.pass(0.98, {
+        objectiveActivity: DEFAULT_OBJECTIVE_ACTIVITY,
+      });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           context: expect.objectContaining({
             contextActivities: expect.objectContaining({
               parent: [DEFAULT_OBJECTIVE_ACTIVITY],
@@ -401,8 +408,8 @@ describe("Cmi5", () => {
     });
 
     it("applies optional statement transform when provided", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.pass(0.75, {
+      await initialize(mockCmi5);
+      Cmi5.instance.pass(0.75, {
         transform: (s: Statement) => {
           return {
             ...s,
@@ -416,7 +423,7 @@ describe("Cmi5", () => {
         },
       });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
           result: expect.objectContaining({
             success: true,
             score: {
@@ -432,11 +439,11 @@ describe("Cmi5", () => {
 
     [{ seconds: 93, expectedDuration: "PT1M33S" }].forEach((ex) => {
       it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         mockDateFloorSeconds(Date.now() + ex.seconds * 1000);
-        cmi5.pass(0.9);
+        Cmi5.instance.pass(0.9);
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
             result: expect.objectContaining({
               duration: ex.expectedDuration,
             }),
@@ -448,10 +455,10 @@ describe("Cmi5", () => {
 
   describe("failed", () => {
     it("posts a FAILED statement with a result score", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.fail({ scaled: 0.1 });
+      await initialize(mockCmi5);
+      Cmi5.instance.fail({ scaled: 0.1 });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
           result: expect.objectContaining({
             success: false,
             score: {
@@ -463,10 +470,10 @@ describe("Cmi5", () => {
     });
 
     it("posts a FAILED statement with a result score passed as a number", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.fail(0.2);
+      await initialize(mockCmi5);
+      Cmi5.instance.fail(0.2);
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
           result: expect.objectContaining({
             success: false,
             score: {
@@ -482,10 +489,10 @@ describe("Cmi5", () => {
         ...mockCmi5.fakeLaunchData,
         masteryScore: undefined,
       };
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.fail();
+      await initialize(mockCmi5);
+      Cmi5.instance.fail();
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
           result: expect.not.objectContaining({
             score: expect.anything(),
           }),
@@ -499,10 +506,10 @@ describe("Cmi5", () => {
           ...mockCmi5.fakeLaunchData,
           launchMode: launchMode as any,
         };
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         let exception;
         try {
-          await cmi5.fail();
+          await Cmi5.instance.fail();
         } catch (err) {
           exception = err;
         }
@@ -515,8 +522,8 @@ describe("Cmi5", () => {
     });
 
     it("applies optional statement transform when provided", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.fail(0.3, {
+      await initialize(mockCmi5);
+      Cmi5.instance.fail(0.3, {
         transform: (s: Statement) => {
           return {
             ...s,
@@ -530,7 +537,7 @@ describe("Cmi5", () => {
         },
       });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
           result: expect.objectContaining({
             success: false,
             score: {
@@ -546,11 +553,11 @@ describe("Cmi5", () => {
 
     [{ seconds: 13, expectedDuration: "PT13S" }].forEach((ex) => {
       it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         mockDateFloorSeconds(Date.now() + ex.seconds * 1000);
-        cmi5.fail(0.1);
+        Cmi5.instance.fail(0.1);
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
             result: expect.objectContaining({
               duration: ex.expectedDuration,
             }),
@@ -562,20 +569,20 @@ describe("Cmi5", () => {
 
   describe("terminate", () => {
     it("posts a TERMINATED statement", async () => {
-      const cmi5 = await initialize(mockCmi5);
-      cmi5.terminate();
+      await initialize(mockCmi5);
+      Cmi5.instance.terminate();
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
       );
     });
 
     [{ seconds: 3713, expectedDuration: "PT1H1M53S" }].forEach((ex) => {
       it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
-        const cmi5 = await initialize(mockCmi5);
+        await initialize(mockCmi5);
         mockDateFloorSeconds(Date.now() + ex.seconds * 1000);
-        cmi5.terminate();
+        Cmi5.instance.terminate();
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED, {
             result: expect.objectContaining({
               duration: ex.expectedDuration,
             }),
@@ -591,18 +598,18 @@ describe("Cmi5", () => {
       { masteryScore: 0.6, score: 0.6 },
     ].forEach((ex) => {
       it(`sends PASSED and COMPLETED for scores at or above launch-data masteryScore (${ex.score} >= ${ex.masteryScore})`, async () => {
-        const cmi5 = await initialize(mockCmi5, {
+        await initialize(mockCmi5, {
           mockLaunchData: () =>
             mockCmi5.mockLaunchData({
               masteryScore: ex.masteryScore,
             }),
         });
-        await cmi5.moveOn({ score: ex.score });
+        await Cmi5.instance.moveOn({ score: ex.score });
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED)
         );
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
             result: expect.objectContaining({
               score: {
                 scaled: ex.score,
@@ -611,7 +618,7 @@ describe("Cmi5", () => {
           })
         );
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
         );
       });
     });
@@ -621,18 +628,18 @@ describe("Cmi5", () => {
       { masteryScore: 0.6, score: 0.1 },
     ].forEach((ex) => {
       it(`sends FAILED and COMPLETED for scores below launch-data masteryScore (${ex.score} < ${ex.masteryScore})`, async () => {
-        const cmi5 = await initialize(mockCmi5, {
+        await initialize(mockCmi5, {
           mockLaunchData: () =>
             mockCmi5.mockLaunchData({
               masteryScore: ex.masteryScore,
             }),
         });
-        await cmi5.moveOn({ score: ex.score });
+        await Cmi5.instance.moveOn({ score: ex.score });
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED)
         );
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED, {
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED, {
             result: expect.objectContaining({
               score: {
                 scaled: ex.score,
@@ -641,44 +648,44 @@ describe("Cmi5", () => {
           })
         );
         expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-          expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+          expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
         );
       });
     });
 
     it("does NOT send PASSED or FAILED when no score provided and launch data has masteryScore", async () => {
-      const cmi5 = await initialize(mockCmi5, {
+      await initialize(mockCmi5, {
         mockLaunchData: () =>
           mockCmi5.mockLaunchData({
             masteryScore: 0.9,
           }),
       });
-      await cmi5.moveOn();
+      await Cmi5.instance.moveOn();
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED)
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED)
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED)
       );
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
       );
     });
 
     it("sets result score on COMPLETED stmt if launch data has no masteryScore", async () => {
-      const cmi5 = await initialize(mockCmi5, {
+      await initialize(mockCmi5, {
         mockLaunchData: () =>
           mockCmi5.mockGetState({
             data: rmProp("masteryScore", mockCmi5.fakeLaunchData),
           }),
       });
       const score = 0.9;
-      await cmi5.moveOn({ score });
+      await Cmi5.instance.moveOn({ score });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED, {
           result: expect.objectContaining({
             score: {
               scaled: score,
@@ -687,18 +694,18 @@ describe("Cmi5", () => {
         })
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED)
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED)
       );
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
       );
     });
 
     it("sets result score on COMPLETED stmt if launch data has no masteryScore while preserving changes made by transform", async () => {
-      const cmi5 = await initialize(mockCmi5, {
+      await initialize(mockCmi5, {
         mockLaunchData: () =>
           mockCmi5.mockGetState({
             data: rmProp("masteryScore", mockCmi5.fakeLaunchData),
@@ -708,7 +715,7 @@ describe("Cmi5", () => {
       const exampleResultExts = {
         "http://example.com/my/ext": 1,
       };
-      await cmi5.moveOn({
+      await Cmi5.instance.moveOn({
         score,
         transform: (s) => {
           return s.verb.id === Cmi5DefinedVerbs.COMPLETED.id
@@ -723,7 +730,7 @@ describe("Cmi5", () => {
         },
       });
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.COMPLETED, {
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.COMPLETED, {
           result: expect.objectContaining({
             score: {
               scaled: score,
@@ -733,13 +740,13 @@ describe("Cmi5", () => {
         })
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.FAILED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.FAILED)
       );
       expect(mockCmi5.mockXapiSendStatement).not.toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.PASSED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED)
       );
       expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-        expectActivityStatement(cmi5, Cmi5DefinedVerbs.TERMINATED)
+        expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.TERMINATED)
       );
     });
   });
