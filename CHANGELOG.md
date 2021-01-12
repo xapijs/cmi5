@@ -1,3 +1,8 @@
+# 0.4.1 (12 Jan 2021)
+
+- Bumped `axios` to solve security vulnerability
+- Bumped `node-notifier` to solve security vulnerability
+
 # 0.4.0 (7 Dec 2020)
 
 - Added singleton access through static `Cmi5.instance()` method
