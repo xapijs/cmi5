@@ -1,3 +1,8 @@
+# 1.0.0 (9 Mar 2021)
+
+- The officially stable launch of xAPI.js cmi5 Profile v1.0.0! 🎉
+- Improved readme
+
 # 0.4.1 (12 Jan 2021)
 
 - Bumped `axios` to solve security vulnerability
