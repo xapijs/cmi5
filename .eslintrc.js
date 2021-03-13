@@ -13,6 +13,7 @@ module.exports = {
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
   ],
   rules: {
     quotes: ["error", "double"],
