@@ -1,3 +1,8 @@
+# 1.1.0
+
+- Added optional result success parameter to interaction methods
+- Exposes xAPI wrapper with `cmi5.xapi` property
+
 # 1.0.0 (9 Mar 2021)
 
 - The officially stable launch of xAPI.js cmi5 Profile v1.0.0! 🎉
