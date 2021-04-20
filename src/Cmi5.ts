@@ -342,6 +342,7 @@ export default class Cmi5 {
     correctAnswer?: boolean,
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -360,6 +361,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -373,6 +375,7 @@ export default class Cmi5 {
     choices?: InteractionComponent[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -392,6 +395,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -404,6 +408,7 @@ export default class Cmi5 {
     correctAnswers?: string[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -422,6 +427,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -434,6 +440,7 @@ export default class Cmi5 {
     correctAnswers?: string[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -452,6 +459,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -465,6 +473,7 @@ export default class Cmi5 {
     scale?: InteractionComponent[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -484,6 +493,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -498,6 +508,7 @@ export default class Cmi5 {
     target?: InteractionComponent[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -528,6 +539,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -541,6 +553,7 @@ export default class Cmi5 {
     steps?: InteractionComponent[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -579,6 +592,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -592,6 +606,7 @@ export default class Cmi5 {
     choices?: InteractionComponent[],
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -611,6 +626,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -623,6 +639,7 @@ export default class Cmi5 {
     correctAnswer: NumericCriteria,
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -649,6 +666,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -661,6 +679,7 @@ export default class Cmi5 {
     correctAnswer: string,
     name?: LanguageMap,
     description?: LanguageMap,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -679,6 +698,7 @@ export default class Cmi5 {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
+      success,
       duration,
       objective
     );
@@ -689,6 +709,7 @@ export default class Cmi5 {
     questionId: string,
     response: string,
     interactionDefinition: InteractionActivityDefinition,
+    success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
@@ -704,6 +725,7 @@ export default class Cmi5 {
               ),
             }
           : {}),
+        ...(typeof success === "boolean" ? { success } : {}),
       },
       object: {
         objectType: "Activity",
