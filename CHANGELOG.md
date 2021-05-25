@@ -1,4 +1,9 @@
-# 1.1.0
+# 1.1.1 (25 May 2021)
+
+- Added auto-generated `id` property to all statements
+- Bumped dependencies
+
+# 1.1.0 (20 Apr 2021)
 
 - Added optional result success parameter to interaction methods
 - Exposes xAPI wrapper with `cmi5.xapi` property
