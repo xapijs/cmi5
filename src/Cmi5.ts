@@ -27,6 +27,7 @@ import {
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
 import { default as deepmerge } from "deepmerge";
 import axios, { AxiosPromise, AxiosResponse } from "axios";
+import { v4 as uuidv4 } from "uuid";
 
 export * from "./interfaces";
 
@@ -878,6 +879,8 @@ export default class Cmi5 {
     statement: Partial<Statement>,
     options?: SendStatementOptions
   ): AxiosPromise<string[]> {
+    // 9.1 Statement ID - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#statement_id
+    const id = uuidv4();
     // 9.2 Actor - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#92-actor
     const actor: Agent = this.launchParameters.actor;
     // 9.7 Timestamp - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#97-timestamp
@@ -887,6 +890,7 @@ export default class Cmi5 {
     // 9.6.1 Registration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#961-registration
     context.registration = this.launchParameters.registration;
     const cmi5AllowedStatementRequirements: Partial<Statement> = {
+      id: id,
       actor: actor,
       timestamp: timestamp,
       context: context,
