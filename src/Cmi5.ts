@@ -249,8 +249,8 @@ export default class Cmi5 {
           ...(this.launchData.masteryScore
             ? {
                 extensions: {
-                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
-                    .launchData.masteryScore,
+                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
+                    this.launchData.masteryScore,
                 },
               }
             : {}),
@@ -295,8 +295,8 @@ export default class Cmi5 {
           ...(this.launchData.masteryScore
             ? {
                 extensions: {
-                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore": this
-                    .launchData.masteryScore,
+                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
+                    this.launchData.masteryScore,
                 },
               }
             : {}),
