@@ -1,3 +1,8 @@
+# 1.1.2 (14 Jul 2021)
+
+- Aligned with `@xapi/xapi@1.2.1`
+- Bumped dependencies
+
 # 1.1.1 (25 May 2021)
 
 - Added auto-generated `id` property to all statements
