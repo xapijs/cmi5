@@ -1,3 +1,10 @@
+# 1.1.3 (9 Sep 2021)
+
+- Added npm version badge to readme
+- Bumped `axios` to solve security vulnerability
+- Bumped dependencies
+- Added build step to automated tests
+
 # 1.1.2 (14 Jul 2021)
 
 - Aligned with `@xapi/xapi@1.2.1`
