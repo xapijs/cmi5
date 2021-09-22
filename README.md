@@ -1,4 +1,4 @@
-[![npm version](https://img.shields.io/npm/v/@xapi/cmi5.svg)](https://www.npmjs.com/package/@xapi/cmi5) ![Test](https://github.com/xapijs/cmi5/workflows/Test/badge.svg)
+[![npm version](https://img.shields.io/npm/v/@xapi/cmi5.svg)](https://www.npmjs.com/package/@xapi/cmi5) [![dependencies](https://david-dm.org/xapijs/cmi5.svg)](https://david-dm.org/xapijs/cmi5) ![Test](https://github.com/xapijs/cmi5/workflows/Test/badge.svg)
 
 [<img width="100" src="https://avatars3.githubusercontent.com/u/65084607?s=200&v=4" alt="xAPI.js logo">](https://www.xapijs.dev)
 
