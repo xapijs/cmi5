@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@xapi/xapi": "^1.2.2",
-    "axios": "^0.21.4",
+    "axios": "^0.22.0",
     "deepmerge": "^4.2.2",
     "uuid": "^8.3.2"
   }
