@@ -1,3 +1,7 @@
+# 1.1.4 (6 Oct 2021)
+
+- Bumped dependencies
+
 # 1.1.3 (9 Sep 2021)
 
 - Added npm version badge to readme
