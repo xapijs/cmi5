@@ -146,7 +146,7 @@ export class MockCmi5Helper {
     });
   }
 
-  mockGetState(fakeResponse?: Partial<AxiosResponse>): void {
+  mockGetState(fakeResponse?: Partial<AxiosResponse<unknown>>): void {
     this.mockXapiGetState.mockImplementation(() =>
       _axiosResponse(
         fakeResponse
