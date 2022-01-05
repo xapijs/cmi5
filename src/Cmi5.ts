@@ -82,7 +82,7 @@ export default class Cmi5 {
     if (!this.launchParameters.fetch) {
       throw Error("Unable to construct, no `fetch` parameter found in URL.");
     } else if (!this.launchParameters.endpoint) {
-      throw Error("Unable to construct, no `endpoint` parameter found in URL");
+      throw Error("Unable to construct, no `endpoint` parameter found in URL.");
     } else if (!this.launchParameters.actor) {
       throw Error("Unable to construct, no `actor` parameter found in URL.");
     } else if (!this.launchParameters.activityId) {
@@ -815,7 +815,7 @@ export default class Cmi5 {
 
   private getLaunchParametersFromLMS(): LaunchParameters {
     return XAPI.getSearchQueryParamsAsObject(
-      window.location.href
+      window.location.search
     ) as LaunchParameters;
   }
 
