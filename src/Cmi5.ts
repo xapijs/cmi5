@@ -1,54 +1,32 @@
-import XAPI, {
-  Agent,
-  Context,
-  InteractionActivityDefinition,
-  InteractionComponent,
-  LanguageMap,
-  ObjectiveActivity,
-  ResultScore,
-  Statement,
-  StatementObject,
-} from "@xapi/xapi";
-import {
-  AuthTokenResponse,
-  LaunchData,
-  LaunchParameters,
-  LearnerPreferences,
-  PassOptions,
-  Performance,
-  PerformanceCriteria,
-  Period,
-  MoveOnOptions,
-  NumericCriteria,
-  NumericExact,
-  NumericRange,
-  SendStatementOptions,
-} from "./interfaces";
-import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
-import { default as deepmerge } from "deepmerge";
-import axios, { AxiosPromise, AxiosResponse } from "axios";
-import { v4 as uuidv4 } from "uuid";
+import XAPI from "@xapi/xapi";
+import { LaunchData, LaunchParameters, LearnerPreferences } from "./interfaces";
+
+import { initialize } from "cmi5-defined/initialize/initialize";
+import { complete } from "cmi5-defined/complete/complete";
+import { pass } from "cmi5-defined/pass/pass";
+import { fail } from "cmi5-defined/fail/fail";
+import { terminate } from "cmi5-defined/terminate/terminate";
+
+import { progress } from "cmi5-allowed/progress/progress";
+import { interactionTrueFalse } from "cmi5-allowed/interactionTrueFalse/interactionTrueFalse";
+import { interactionChoice } from "cmi5-allowed/interactionChoice/interactionChoice";
+import { interactionFillIn } from "cmi5-allowed/interactionFillIn/interactionFillIn";
+import { interactionLongFillIn } from "cmi5-allowed/interactionLongFillIn/interactionLongFillIn";
+import { interactionLikert } from "cmi5-allowed/interactionLikert/interactionLikert";
+import { interactionMatching } from "cmi5-allowed/interactionMatching/interactionMatching";
+import { interactionPerformance } from "cmi5-allowed/interactionPerformance/interactionPerformance";
+import { interactionSequencing } from "cmi5-allowed/interactionSequencing/interactionSequencing";
+import { interactionNumeric } from "cmi5-allowed/interactionNumeric/interactionNumeric";
+import { interactionOther } from "cmi5-allowed/interactionOther/interactionOther";
+import { interaction } from "cmi5-allowed/interaction/interaction";
+
+import { isCmiAvailable } from "helpers/isCmiAvailable/isCmiAvailable";
+import { moveOn } from "helpers/moveOn/moveOn";
+
+import { sendCmi5DefinedStatement } from "internal/sendCmi5DefinedStatement";
+import { sendCmi5AllowedStatement } from "internal/sendCmi5AllowedStatement";
 
 export * from "./interfaces";
-
-function _isObjectiveActivity(x?: any): boolean {
-  return (
-    x &&
-    x.objectType === "Activity" &&
-    typeof x.id === "string" &&
-    x.definition &&
-    typeof x.definition === "object" &&
-    x.definition.type === "http://adlnet.gov/expapi/activities/objective"
-  );
-}
-
-function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
-  return !isNaN(Number(s))
-    ? {
-        scaled: Number(s),
-      }
-    : (s as ResultScore);
-}
 
 /**
  * Experience API cmi5 Profile (Quartz - 1st Edition)
@@ -56,29 +34,16 @@ function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
  */
 export default class Cmi5 {
   private static _instance: Cmi5 | null = null;
-  private launchParameters: LaunchParameters;
-  private launchData!: LaunchData;
-  private learnerPreferences!: LearnerPreferences;
   private static _xapi: XAPI | null = null;
-  private initialisedDate!: Date;
-
-  static get instance(): Cmi5 {
-    if (!Cmi5._instance) {
-      Cmi5._instance = new Cmi5();
-    }
-    return Cmi5._instance;
-  }
-
-  static clearInstance(): void {
-    Cmi5._instance = null;
-  }
-
-  static get xapi(): XAPI | null {
-    return Cmi5._xapi;
-  }
+  protected launchParameters: LaunchParameters;
+  protected launchData!: LaunchData;
+  protected learnerPreferences!: LearnerPreferences;
+  protected initialisedDate!: Date;
 
   constructor() {
-    this.launchParameters = this.getLaunchParametersFromLMS();
+    this.launchParameters = XAPI.getSearchQueryParamsAsObject(
+      window.location.search
+    ) as LaunchParameters;
     if (!this.launchParameters.fetch) {
       throw Error("Unable to construct, no `fetch` parameter found in URL.");
     } else if (!this.launchParameters.endpoint) {
@@ -96,27 +61,45 @@ export default class Cmi5 {
     }
   }
 
-  public static get isCmiAvailable(): boolean {
-    if (!window || typeof window !== "object") {
-      return false;
-    }
-    if (!window.location || typeof window.location.search !== "string") {
-      return false;
-    }
-    const p = new URLSearchParams(window.location.search);
-    return Boolean(
-      // true if has all required cmi5 query params
-      p.get("fetch") &&
-        p.get("endpoint") &&
-        p.get("actor") &&
-        p.get("registration") &&
-        p.get("activityId")
-    );
-  }
+  // "cmi5 defined" Statements
 
-  public get isAuthenticated(): boolean {
-    return Boolean(Cmi5._xapi);
-  }
+  public initialize = initialize;
+
+  public complete = complete;
+
+  public pass = pass;
+
+  public fail = fail;
+
+  public terminate = terminate;
+
+  // "cmi5 allowed" Statements
+
+  public progress = progress;
+
+  public interactionTrueFalse = interactionTrueFalse;
+
+  public interactionChoice = interactionChoice;
+
+  public interactionFillIn = interactionFillIn;
+
+  public interactionLongFillIn = interactionLongFillIn;
+
+  public interactionLikert = interactionLikert;
+
+  public interactionMatching = interactionMatching;
+
+  public interactionPerformance = interactionPerformance;
+
+  public interactionSequencing = interactionSequencing;
+
+  public interactionNumeric = interactionNumeric;
+
+  public interactionOther = interactionOther;
+
+  public interaction = interaction;
+
+  // helpers
 
   public getLaunchParameters(): LaunchParameters {
     return this.launchParameters;
@@ -131,783 +114,38 @@ export default class Cmi5 {
     return this.learnerPreferences;
   }
 
-  // "cmi5 defined" Statements
-  public initialize(): AxiosPromise<string[]> {
-    return this.getAuthTokenFromLMS(this.launchParameters.fetch)
-      .then((response) => {
-        const authToken: string = response.data["auth-token"];
-        Cmi5._xapi = new XAPI({
-          endpoint: this.launchParameters.endpoint,
-          auth: `Basic ${authToken}`,
-        });
-        return this.getLaunchDataFromLMS();
-      })
-      .then((result) => {
-        this.launchData = result.data;
-      })
-      .then(() => {
-        return this.getLearnerPreferencesFromLMS();
-      })
-      .then((result) => {
-        this.learnerPreferences = result.data || {};
-      })
-      .then(() => {
-        this.initialisedDate = new Date();
-        // 9.3.2 Initialized - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#932-initialized
-        return this.sendCmi5DefinedStatement({
-          verb: Cmi5DefinedVerbs.INITIALIZED,
-        });
-      });
+  public static get isCmiAvailable() {
+    return isCmiAvailable();
   }
 
-  public complete(options?: SendStatementOptions): AxiosPromise<string[]> {
-    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal")
-      return Promise.reject(
-        new Error("Can only send COMPLETED when launchMode is 'Normal'")
-      );
-    return this.sendCmi5DefinedStatement(
-      {
-        // 9.3.3 Completed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#933-completed
-        verb: Cmi5DefinedVerbs.COMPLETED,
-        result: {
-          // 9.5.3 Completion - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#953-completion
-          completion: true,
-          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#completed-statement
-          duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
-            new Date()
-          ),
-        },
-        context: {
-          contextActivities: {
-            category: [
-              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-              Cmi5ContextActivity.MOVE_ON,
-            ],
-          },
-        },
-      },
-      options
-    );
+  public get isAuthenticated(): boolean {
+    return Boolean(Cmi5._xapi);
   }
 
-  public pass(
-    score?: ResultScore | number,
-    objectiveOrOptions?: ObjectiveActivity | PassOptions
-  ): AxiosPromise<string[]> {
-    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal")
-      return Promise.reject(
-        new Error("Can only send PASSED when launchMode is 'Normal'")
-      );
-    const rScore = _toResultScore(score);
-    // Best Practice #4 - AU Mastery Score - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-    if (
-      this.launchData.masteryScore &&
-      (!rScore ||
-        isNaN(Number(rScore.scaled)) ||
-        rScore.scaled < this.launchData.masteryScore)
-    )
-      return Promise.reject(new Error("Learner has not met Mastery Score"));
-    const [objective, options] = _isObjectiveActivity(objectiveOrOptions)
-      ? [objectiveOrOptions as ObjectiveActivity, undefined]
-      : [
-          (objectiveOrOptions as PassOptions)
-            ? (objectiveOrOptions as PassOptions).objectiveActivity
-            : undefined,
-          objectiveOrOptions as SendStatementOptions,
-        ];
-    return this.sendCmi5DefinedStatement(
-      {
-        // 9.3.4 Passed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#934-passed
-        verb: Cmi5DefinedVerbs.PASSED,
-        result: {
-          // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
-          ...(rScore ? { score: rScore } : {}),
-          // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
-          success: true,
-          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#passed-statement
-          duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
-            new Date()
-          ),
-        },
-        context: {
-          contextActivities: {
-            category: [
-              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-              Cmi5ContextActivity.MOVE_ON,
-            ],
-            // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-            ...(objective
-              ? {
-                  parent: [objective as ObjectiveActivity],
-                }
-              : {}),
-          },
-          ...(this.launchData.masteryScore
-            ? {
-                extensions: {
-                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
-                    this.launchData.masteryScore,
-                },
-              }
-            : {}),
-        },
-      },
-      options
-    );
-  }
-
-  public fail(
-    score?: ResultScore | number,
-    options?: SendStatementOptions
-  ): AxiosPromise<string[]> {
-    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal")
-      return Promise.reject(
-        new Error("Can only send FAILED when launchMode is 'Normal'")
-      );
-    const rScore = _toResultScore(score);
-    return this.sendCmi5DefinedStatement(
-      {
-        // 9.3.5 Failed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#935-failed
-        verb: Cmi5DefinedVerbs.FAILED,
-        result: {
-          // 9.5.1 Score - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#951-score
-          ...(rScore ? { score: rScore } : {}),
-          // 9.5.2 Success - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#952-success
-          success: false,
-          // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#failed-statement
-          duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
-            new Date()
-          ),
-        },
-        context: {
-          contextActivities: {
-            category: [
-              // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-              Cmi5ContextActivity.MOVE_ON,
-            ],
-          },
-          ...(this.launchData.masteryScore
-            ? {
-                extensions: {
-                  "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
-                    this.launchData.masteryScore,
-                },
-              }
-            : {}),
-        },
-      },
-      options
-    );
-  }
-
-  public terminate(): AxiosPromise<string[]> {
-    return this.sendCmi5DefinedStatement({
-      // 9.3.8 Terminated - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#938-terminated
-      verb: Cmi5DefinedVerbs.TERMINATED,
-      result: {
-        // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#terminated-statement
-        duration: XAPI.calculateISO8601Duration(
-          this.initialisedDate,
-          new Date()
-        ),
-      },
-    });
-  }
-
-  // "cmi5 allowed" Statements
-  public progress(percent: number): AxiosPromise<string[]> {
-    return this.sendCmi5AllowedStatement({
-      verb: XAPI.Verbs.PROGRESSED,
-      object: {
-        objectType: "Activity",
-        id: this.launchParameters.activityId,
-      },
-      result: {
-        extensions: {
-          "https://w3id.org/xapi/cmi5/result/extensions/progress": percent,
-        },
-      },
-    });
-  }
-
-  public interactionTrueFalse(
-    testId: string,
-    questionId: string,
-    answer: boolean,
-    correctAnswer?: boolean,
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answer.toString(),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "true-false",
-        ...(correctAnswer !== undefined
-          ? {
-              correctResponsesPattern: correctAnswer ? ["true"] : ["false"],
-            }
-          : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionChoice(
-    testId: string,
-    questionId: string,
-    answerIds: string[],
-    correctAnswerIds?: string[],
-    choices?: InteractionComponent[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answerIds.join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "choice",
-        ...(correctAnswerIds
-          ? {
-              correctResponsesPattern: [correctAnswerIds.join("[,]")],
-            }
-          : {}),
-        ...(choices ? { choices } : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionFillIn(
-    testId: string,
-    questionId: string,
-    answers: string[],
-    correctAnswers?: string[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answers.join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "fill-in",
-        ...(correctAnswers
-          ? {
-              correctResponsesPattern: [correctAnswers.join("[,]")],
-            }
-          : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionLongFillIn(
-    testId: string,
-    questionId: string,
-    answers: string[],
-    correctAnswers?: string[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answers.join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "long-fill-in",
-        ...(correctAnswers
-          ? {
-              correctResponsesPattern: [correctAnswers.join("[,]")],
-            }
-          : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionLikert(
-    testId: string,
-    questionId: string,
-    answerId: string,
-    correctAnswerId?: string,
-    scale?: InteractionComponent[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answerId,
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "likert",
-        ...(correctAnswerId
-          ? {
-              correctResponsesPattern: [correctAnswerId],
-            }
-          : {}),
-        ...(scale ? { scale } : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionMatching(
-    testId: string,
-    questionId: string,
-    answers: { [sourceId: string]: string },
-    correctAnswers?: { [sourceId: string]: string },
-    source?: InteractionComponent[],
-    target?: InteractionComponent[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      Object.keys(answers)
-        .map((key) => {
-          return `${key}[.]${answers[key]}`;
-        })
-        .join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "matching",
-        ...(correctAnswers
-          ? {
-              correctResponsesPattern: [
-                Object.keys(correctAnswers)
-                  .map((key) => {
-                    return `${key}[.]${correctAnswers[key]}`;
-                  })
-                  .join("[,]"),
-              ],
-            }
-          : {}),
-        ...(source ? { source } : {}),
-        ...(target ? { target } : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionPerformance(
-    testId: string,
-    questionId: string,
-    answers: Performance,
-    correctAnswers?: PerformanceCriteria[],
-    steps?: InteractionComponent[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      Object.keys(answers)
-        .map((key) => {
-          return `${key}[.]${answers[key]}`;
-        })
-        .join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "performance",
-        ...(correctAnswers
-          ? {
-              correctResponsesPattern: [
-                Object.keys(correctAnswers)
-                  .map((key) => {
-                    const exact: string = correctAnswers[key].exact
-                      ? correctAnswers[key].exact.toString()
-                      : "";
-                    const min: string = correctAnswers[key].min
-                      ? correctAnswers[key].min.toString()
-                      : "";
-                    const max: number = correctAnswers[key].max
-                      ? correctAnswers[key].max.toString()
-                      : "";
-                    return `${key}[.]${exact ? exact : min + ":" + max}`;
-                  })
-                  .join("[,]"),
-              ],
-            }
-          : {}),
-        ...(steps ? { steps } : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionSequencing(
-    testId: string,
-    questionId: string,
-    answerIds: string[],
-    correctAnswerIds: string[],
-    choices?: InteractionComponent[],
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answerIds.join("[,]"),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "sequencing",
-        ...(correctAnswerIds
-          ? {
-              correctResponsesPattern: [correctAnswerIds.join("[,]")],
-            }
-          : {}),
-        ...(choices ? { choices } : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionNumeric(
-    testId: string,
-    questionId: string,
-    answer: number,
-    correctAnswer: NumericCriteria,
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answer.toString(),
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "numeric",
-        ...(correctAnswer
-          ? {
-              correctResponsesPattern: [
-                `${
-                  (correctAnswer as NumericExact).exact
-                    ? (correctAnswer as NumericExact).exact
-                    : (correctAnswer as NumericRange).min +
-                      ":" +
-                      (correctAnswer as NumericRange).max
-                }`,
-              ],
-            }
-          : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interactionOther(
-    testId: string,
-    questionId: string,
-    answer: string,
-    correctAnswer: string,
-    name?: LanguageMap,
-    description?: LanguageMap,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.interaction(
-      testId,
-      questionId,
-      answer,
-      {
-        type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        interactionType: "other",
-        ...(correctAnswer
-          ? {
-              correctResponsesPattern: [correctAnswer],
-            }
-          : {}),
-        ...(name ? { name } : {}),
-        ...(description ? { description } : {}),
-      },
-      success,
-      duration,
-      objective
-    );
-  }
-
-  public interaction(
-    testId: string,
-    questionId: string,
-    response: string,
-    interactionDefinition: InteractionActivityDefinition,
-    success?: boolean,
-    duration?: Period,
-    objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
-    return this.sendCmi5AllowedStatement({
-      verb: XAPI.Verbs.ANSWERED,
-      result: {
-        response: response,
-        ...(duration
-          ? {
-              duration: XAPI.calculateISO8601Duration(
-                duration.start,
-                duration.end
-              ),
-            }
-          : {}),
-        ...(typeof success === "boolean" ? { success } : {}),
-      },
-      object: {
-        objectType: "Activity",
-        // Best Practice #16 - AU should use a derived activity ID for “cmi.interaction” statements - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-        id: `${this.launchParameters.activityId}/test/${testId}/question/${questionId}`,
-        definition: interactionDefinition,
-      },
-      // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-      ...(objective
-        ? {
-            context: {
-              contextActivities: {
-                parent: [objective],
-              },
-            },
-          }
-        : {}),
-    });
-  }
-
-  private setResultScore(resultScore: ResultScore, s: Statement): Statement {
-    return {
-      ...s,
-      result: {
-        ...(s.result || {}),
-        score: resultScore,
-      },
-    };
-  }
-
-  public async moveOn(options?: MoveOnOptions): Promise<string[]> {
-    let effectiveOptions = options;
-    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    if (this.launchData.launchMode !== "Normal")
-      return Promise.reject(
-        new Error("Can only send FAILED when launchMode is 'Normal'")
-      );
-    const newStatementIds: string[] = [];
-    if (effectiveOptions?.score) {
-      const rScore = _toResultScore(effectiveOptions?.score);
-      if (this.launchData.masteryScore) {
-        if (rScore.scaled >= this.launchData.masteryScore) {
-          this.appendStatementIds(
-            await this.pass(rScore, effectiveOptions),
-            newStatementIds
-          );
-        } else {
-          this.appendStatementIds(
-            await this.fail(rScore, effectiveOptions),
-            newStatementIds
-          );
-        }
-      } else {
-        const _setResultScore = (s: Statement): Statement => {
-          return this.setResultScore(rScore, s);
-        };
-        const transformProvided = effectiveOptions?.transform;
-        effectiveOptions = {
-          ...(effectiveOptions || {}),
-          transform:
-            typeof transformProvided === "function"
-              ? // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-                (s) => transformProvided(_setResultScore(s))
-              : // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-                (s) => _setResultScore(s),
-        };
-      }
+  static get instance(): Cmi5 {
+    if (!Cmi5._instance) {
+      Cmi5._instance = new Cmi5();
     }
-    this.appendStatementIds(
-      await this.complete(effectiveOptions),
-      newStatementIds
-    );
-    if (!options?.disableSendTerminated) {
-      this.appendStatementIds(await this.terminate(), newStatementIds);
-    }
-    return newStatementIds;
+    return Cmi5._instance;
   }
 
-  private appendStatementIds(
-    response: AxiosResponse<string[]>,
-    toIds: string[]
-  ): void {
-    // eslint-disable-next-line prefer-spread
-    toIds.push.apply(toIds, response.data);
+  static clearInstance(): void {
+    Cmi5._instance = null;
   }
 
-  private getLaunchParametersFromLMS(): LaunchParameters {
-    return XAPI.getSearchQueryParamsAsObject(
-      window.location.search
-    ) as LaunchParameters;
+  public moveOn = moveOn;
+
+  static get xapi(): XAPI | null {
+    return Cmi5._xapi;
   }
 
-  private getAuthTokenFromLMS(
-    fetchUrl: string
-  ): AxiosPromise<AuthTokenResponse> {
-    return axios.post<AuthTokenResponse>(fetchUrl);
+  protected set xapi(xapi: XAPI) {
+    Cmi5._xapi = xapi;
   }
 
-  private getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
-    return Cmi5._xapi.getState({
-      agent: this.launchParameters.actor,
-      activityId: this.launchParameters.activityId,
-      stateId: "LMS.LaunchData",
-      registration: this.launchParameters.registration,
-    }) as AxiosPromise<LaunchData>;
-  }
+  // internal
 
-  private getLearnerPreferencesFromLMS(): AxiosPromise<LearnerPreferences> {
-    return Cmi5._xapi
-      .getAgentProfile({
-        agent: this.launchParameters.actor,
-        profileId: "cmi5LearnerPreferences",
-      })
-      .then(
-        (result) => {
-          return result.data;
-        },
-        () => {
-          return {};
-        }
-      ) as AxiosPromise<LearnerPreferences>;
-  }
+  protected sendCmi5DefinedStatement = sendCmi5DefinedStatement;
 
-  private sendCmi5DefinedStatement(
-    statement: Partial<Statement>,
-    options?: SendStatementOptions
-  ): AxiosPromise<string[]> {
-    // 9.4 Object - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#94-object
-    const object: StatementObject = {
-      objectType: "Activity",
-      id: this.launchParameters.activityId,
-    };
-    const context: Context = {
-      contextActivities: {
-        category: [
-          // 9.6.2.1 cmi5 Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9621-cmi5-category-activity
-          Cmi5ContextActivity.CMI5,
-        ],
-      },
-    };
-    const cmi5DefinedStatementRequirements: Partial<Statement> = {
-      object: object,
-      context: context,
-    };
-    const mergedStatement: Partial<Statement> = deepmerge.all([
-      cmi5DefinedStatementRequirements,
-      statement,
-    ]);
-    return this.sendCmi5AllowedStatement(mergedStatement, options);
-  }
-
-  public sendCmi5AllowedStatement(
-    statement: Partial<Statement>,
-    options?: SendStatementOptions
-  ): AxiosPromise<string[]> {
-    // 9.1 Statement ID - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#statement_id
-    const id = uuidv4();
-    // 9.2 Actor - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#92-actor
-    const actor: Agent = this.launchParameters.actor;
-    // 9.7 Timestamp - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#97-timestamp
-    const timestamp = new Date().toISOString();
-    // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-    const context: Context = Object.assign({}, this.launchData.contextTemplate);
-    // 9.6.1 Registration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#961-registration
-    context.registration = this.launchParameters.registration;
-    const cmi5AllowedStatementRequirements: Partial<Statement> = {
-      id: id,
-      actor: actor,
-      timestamp: timestamp,
-      context: context,
-    };
-    const mergedStatement = deepmerge.all([
-      cmi5AllowedStatementRequirements,
-      statement,
-    ]) as Statement;
-    const sendStatement =
-      options && typeof options.transform === "function"
-        ? options.transform(mergedStatement)
-        : mergedStatement;
-    return Cmi5._xapi.sendStatement({
-      statement: sendStatement,
-    });
-  }
+  protected sendCmi5AllowedStatement = sendCmi5AllowedStatement;
 }
