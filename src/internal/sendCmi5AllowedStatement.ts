@@ -1,9 +1,8 @@
-import { Statement } from "@xapi/xapi";
+import { Context, Statement } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5, { SendStatementOptions } from "Cmi5";
+import Cmi5, { SendStatementOptions } from "../Cmi5";
 import deepmerge from "deepmerge";
 import { Agent } from "@xapi/xapi";
-import { Context } from "vm";
 import { v4 as uuidv4 } from "uuid";
 
 export function sendCmi5AllowedStatement(

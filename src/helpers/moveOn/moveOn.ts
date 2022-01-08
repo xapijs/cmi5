@@ -1,8 +1,8 @@
 import { ResultScore, Statement } from "@xapi/xapi";
 import { AxiosResponse } from "axios";
-import Cmi5 from "Cmi5";
-import { MoveOnOptions } from "interfaces";
-import { toResultScore } from "internal/toResultScore";
+import Cmi5 from "../../Cmi5";
+import { MoveOnOptions } from "../../interfaces";
+import { toResultScore } from "../../internal/toResultScore";
 
 function setResultScore(
   resultScore: ResultScore,

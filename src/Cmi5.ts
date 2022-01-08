@@ -1,30 +1,30 @@
 import XAPI from "@xapi/xapi";
 import { LaunchData, LaunchParameters, LearnerPreferences } from "./interfaces";
 
-import { initialize } from "cmi5-defined/initialize/initialize";
-import { complete } from "cmi5-defined/complete/complete";
-import { pass } from "cmi5-defined/pass/pass";
-import { fail } from "cmi5-defined/fail/fail";
-import { terminate } from "cmi5-defined/terminate/terminate";
+import { initialize } from "./cmi5-defined/initialize/initialize";
+import { complete } from "./cmi5-defined/complete/complete";
+import { pass } from "./cmi5-defined/pass/pass";
+import { fail } from "./cmi5-defined/fail/fail";
+import { terminate } from "./cmi5-defined/terminate/terminate";
 
-import { progress } from "cmi5-allowed/progress/progress";
-import { interactionTrueFalse } from "cmi5-allowed/interactionTrueFalse/interactionTrueFalse";
-import { interactionChoice } from "cmi5-allowed/interactionChoice/interactionChoice";
-import { interactionFillIn } from "cmi5-allowed/interactionFillIn/interactionFillIn";
-import { interactionLongFillIn } from "cmi5-allowed/interactionLongFillIn/interactionLongFillIn";
-import { interactionLikert } from "cmi5-allowed/interactionLikert/interactionLikert";
-import { interactionMatching } from "cmi5-allowed/interactionMatching/interactionMatching";
-import { interactionPerformance } from "cmi5-allowed/interactionPerformance/interactionPerformance";
-import { interactionSequencing } from "cmi5-allowed/interactionSequencing/interactionSequencing";
-import { interactionNumeric } from "cmi5-allowed/interactionNumeric/interactionNumeric";
-import { interactionOther } from "cmi5-allowed/interactionOther/interactionOther";
-import { interaction } from "cmi5-allowed/interaction/interaction";
+import { progress } from "./cmi5-allowed/progress/progress";
+import { interactionTrueFalse } from "./cmi5-allowed/interactionTrueFalse/interactionTrueFalse";
+import { interactionChoice } from "./cmi5-allowed/interactionChoice/interactionChoice";
+import { interactionFillIn } from "./cmi5-allowed/interactionFillIn/interactionFillIn";
+import { interactionLongFillIn } from "./cmi5-allowed/interactionLongFillIn/interactionLongFillIn";
+import { interactionLikert } from "./cmi5-allowed/interactionLikert/interactionLikert";
+import { interactionMatching } from "./cmi5-allowed/interactionMatching/interactionMatching";
+import { interactionPerformance } from "./cmi5-allowed/interactionPerformance/interactionPerformance";
+import { interactionSequencing } from "./cmi5-allowed/interactionSequencing/interactionSequencing";
+import { interactionNumeric } from "./cmi5-allowed/interactionNumeric/interactionNumeric";
+import { interactionOther } from "./cmi5-allowed/interactionOther/interactionOther";
+import { interaction } from "./cmi5-allowed/interaction/interaction";
 
-import { isCmiAvailable } from "helpers/isCmiAvailable/isCmiAvailable";
-import { moveOn } from "helpers/moveOn/moveOn";
+import { isCmiAvailable } from "./helpers/isCmiAvailable/isCmiAvailable";
+import { moveOn } from "./helpers/moveOn/moveOn";
 
-import { sendCmi5DefinedStatement } from "internal/sendCmi5DefinedStatement";
-import { sendCmi5AllowedStatement } from "internal/sendCmi5AllowedStatement";
+import { sendCmi5DefinedStatement } from "./internal/sendCmi5DefinedStatement";
+import { sendCmi5AllowedStatement } from "./internal/sendCmi5AllowedStatement";
 
 export * from "./interfaces";
 

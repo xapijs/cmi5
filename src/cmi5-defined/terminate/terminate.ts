@@ -1,6 +1,6 @@
 import XAPI from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5 from "Cmi5";
+import Cmi5 from "../../Cmi5";
 import { Cmi5DefinedVerbs } from "../../constants";
 
 export function terminate(this: Cmi5): AxiosPromise<string[]> {

@@ -1,8 +1,8 @@
 import XAPI, { ResultScore, ObjectiveActivity } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5, { PassOptions, SendStatementOptions } from "Cmi5";
-import { isObjectiveActivity } from "internal/isObjectiveActivity";
-import { toResultScore } from "internal/toResultScore";
+import Cmi5, { PassOptions, SendStatementOptions } from "../../Cmi5";
+import { isObjectiveActivity } from "../../internal/isObjectiveActivity";
+import { toResultScore } from "../../internal/toResultScore";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "../../constants";
 
 export function pass(

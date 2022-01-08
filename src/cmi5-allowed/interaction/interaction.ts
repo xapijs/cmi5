@@ -3,8 +3,8 @@ import XAPI, {
   ObjectiveActivity,
 } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5 from "Cmi5";
-import { Period } from "interfaces";
+import Cmi5 from "../../Cmi5";
+import { Period } from "../../interfaces";
 
 export function interaction(
   this: Cmi5,

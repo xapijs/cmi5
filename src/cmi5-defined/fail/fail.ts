@@ -1,7 +1,7 @@
 import XAPI, { ResultScore } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5, { SendStatementOptions } from "Cmi5";
-import { toResultScore } from "internal/toResultScore";
+import Cmi5, { SendStatementOptions } from "../../Cmi5";
+import { toResultScore } from "../../internal/toResultScore";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "../../constants";
 
 export function fail(

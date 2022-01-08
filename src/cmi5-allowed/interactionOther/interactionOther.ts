@@ -1,6 +1,6 @@
 import { LanguageMap, ObjectiveActivity } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5, { Period } from "Cmi5";
+import Cmi5, { Period } from "../../Cmi5";
 
 export function interactionOther(
   this: Cmi5,

@@ -1,6 +1,10 @@
 import XAPI from "@xapi/xapi";
 import axios, { AxiosPromise } from "axios";
-import Cmi5, { AuthTokenResponse, LaunchData, LearnerPreferences } from "Cmi5";
+import Cmi5, {
+  AuthTokenResponse,
+  LaunchData,
+  LearnerPreferences,
+} from "../../Cmi5";
 import { Cmi5DefinedVerbs } from "../../constants";
 
 function getAuthTokenFromLMS(

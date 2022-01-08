@@ -1,8 +1,8 @@
 import XAPI from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5 from "Cmi5";
+import Cmi5 from "../../Cmi5";
 import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "../../constants";
-import { SendStatementOptions } from "interfaces";
+import { SendStatementOptions } from "../../interfaces";
 
 export function complete(
   this: Cmi5,

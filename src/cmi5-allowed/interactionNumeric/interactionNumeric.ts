@@ -5,7 +5,7 @@ import Cmi5, {
   NumericExact,
   NumericRange,
   Period,
-} from "Cmi5";
+} from "../../Cmi5";
 
 export function interactionNumeric(
   this: Cmi5,

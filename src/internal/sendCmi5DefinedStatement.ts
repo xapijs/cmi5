@@ -1,9 +1,8 @@
-import { Statement, StatementObject } from "@xapi/xapi";
+import { Context, Statement, StatementObject } from "@xapi/xapi";
 import { AxiosPromise } from "axios";
-import Cmi5, { SendStatementOptions } from "Cmi5";
+import Cmi5, { SendStatementOptions } from "../Cmi5";
 import { Cmi5ContextActivity } from "../constants";
 import deepmerge from "deepmerge";
-import { Context } from "vm";
 
 export function sendCmi5DefinedStatement(
   this: Cmi5,
