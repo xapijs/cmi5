@@ -1,28 +1,11 @@
 import Cmi5 from "./Cmi5";
-import { DEFAULT_LAUNCH_PARAMETERS } from "../test/helpers";
-
-function addParamsToWindowLocationHref(params: {}) {
-  const search =
-    "?" +
-    Object.keys(params)
-      .map((key) => key + "=" + params[key])
-      .join("&");
-
-  Object.defineProperty(window, "location", {
-    value: {
-      search: search,
-    },
-    writable: true,
-  });
-}
-
-function deepclone<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
-}
+import { testLaunchParams } from "../test/constants";
+import { addParamsToWindowLocationHref } from "../test/addParamsToWindowLocationHref";
+import { deepClone } from "../test/deepClone";
 
 describe("cmi5 constructor", () => {
   test("should throw error when no `fetch` parameter in URL", () => {
-    const params = deepclone(DEFAULT_LAUNCH_PARAMETERS);
+    const params = deepClone(testLaunchParams);
     delete params.fetch;
     addParamsToWindowLocationHref(params);
     const cmi5 = () => new Cmi5();
@@ -32,7 +15,7 @@ describe("cmi5 constructor", () => {
   });
 
   test("should throw error when no `endpoint` parameter found in URL", () => {
-    const params = deepclone(DEFAULT_LAUNCH_PARAMETERS);
+    const params = deepClone(testLaunchParams);
     delete params.endpoint;
     addParamsToWindowLocationHref(params);
     const cmi5 = () => new Cmi5();
@@ -42,7 +25,7 @@ describe("cmi5 constructor", () => {
   });
 
   test("should throw error when no `actor` parameter found in URL", () => {
-    const params = deepclone(DEFAULT_LAUNCH_PARAMETERS);
+    const params = deepClone(testLaunchParams);
     delete params.actor;
     addParamsToWindowLocationHref(params);
     const cmi5 = () => new Cmi5();
@@ -52,7 +35,7 @@ describe("cmi5 constructor", () => {
   });
 
   test("should throw error when no `activityId` parameter found in URL", () => {
-    const params = deepclone(DEFAULT_LAUNCH_PARAMETERS);
+    const params = deepClone(testLaunchParams);
     delete params.activityId;
     addParamsToWindowLocationHref(params);
     const cmi5 = () => new Cmi5();
@@ -62,7 +45,7 @@ describe("cmi5 constructor", () => {
   });
 
   test("should throw error when no `registration` parameter found in URL", () => {
-    const params = deepclone(DEFAULT_LAUNCH_PARAMETERS);
+    const params = deepClone(testLaunchParams);
     delete params.registration;
     addParamsToWindowLocationHref(params);
     const cmi5 = () => new Cmi5();
@@ -72,7 +55,7 @@ describe("cmi5 constructor", () => {
   });
 
   test("should not throw error when all parameters found in URL", () => {
-    addParamsToWindowLocationHref(DEFAULT_LAUNCH_PARAMETERS);
+    addParamsToWindowLocationHref(testLaunchParams);
     const cmi5 = () => new Cmi5();
     expect(cmi5).not.toThrow(Error);
   });
@@ -93,7 +76,7 @@ describe("cmi5 singleton", () => {
 
 describe("xapi instance", () => {
   beforeEach(() => {
-    addParamsToWindowLocationHref(DEFAULT_LAUNCH_PARAMETERS);
+    addParamsToWindowLocationHref(testLaunchParams);
   });
   test("should be null when not initialised", () => {
     const cmi5 = new Cmi5();
