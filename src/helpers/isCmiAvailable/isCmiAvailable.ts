@@ -1,17 +1,14 @@
+/**
+ * Checks whether the environment has all of the necessary parameters for initialisation.
+ * @returns true if the url search parameters have all required cmi5 query parameters
+ */
 export function isCmiAvailable(): boolean {
-  if (!window || typeof window !== "object") {
-    return false;
-  }
-  if (!window.location || typeof window.location.search !== "string") {
-    return false;
-  }
-  const p = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   return Boolean(
-    // true if has all required cmi5 query params
-    p.get("fetch") &&
-      p.get("endpoint") &&
-      p.get("actor") &&
-      p.get("registration") &&
-      p.get("activityId")
+    params.get("fetch") &&
+      params.get("endpoint") &&
+      params.get("actor") &&
+      params.get("registration") &&
+      params.get("activityId")
   );
 }
