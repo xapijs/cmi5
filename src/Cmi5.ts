@@ -1,7 +1,11 @@
 import XAPI from "@xapi/xapi";
 import { LaunchData, LaunchParameters, LearnerPreferences } from "./interfaces";
 
-import { initialize } from "./cmi5-defined/initialize/initialize";
+import {
+  getLaunchDataFromLMS,
+  getLearnerPreferencesFromLMS,
+  initialize,
+} from "./cmi5-defined/initialize/initialize";
 import { complete } from "./cmi5-defined/complete/complete";
 import { pass } from "./cmi5-defined/pass/pass";
 import { fail } from "./cmi5-defined/fail/fail";
@@ -148,4 +152,8 @@ export default class Cmi5 {
   protected sendCmi5DefinedStatement = sendCmi5DefinedStatement;
 
   protected sendCmi5AllowedStatement = sendCmi5AllowedStatement;
+
+  protected getLaunchDataFromLMS = getLaunchDataFromLMS;
+
+  protected getLearnerPreferencesFromLMS = getLearnerPreferencesFromLMS;
 }

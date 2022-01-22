@@ -13,7 +13,7 @@ function getAuthTokenFromLMS(
   return axios.post<AuthTokenResponse>(fetchUrl);
 }
 
-function getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
+export function getLaunchDataFromLMS(this: Cmi5): AxiosPromise<LaunchData> {
   return Cmi5.xapi.getState({
     agent: this.launchParameters.actor,
     activityId: this.launchParameters.activityId,
@@ -22,7 +22,7 @@ function getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
   }) as AxiosPromise<LaunchData>;
 }
 
-function getLearnerPreferencesFromLMS(): AxiosPromise<LearnerPreferences> {
+export function getLearnerPreferencesFromLMS(): AxiosPromise<LearnerPreferences> {
   return Cmi5.xapi
     .getAgentProfile({
       agent: this.launchParameters.actor,
@@ -46,13 +46,13 @@ export function initialize(this: Cmi5): AxiosPromise<string[]> {
         endpoint: this.launchParameters.endpoint,
         auth: `Basic ${authToken}`,
       });
-      return getLaunchDataFromLMS();
+      return this.getLaunchDataFromLMS();
     })
     .then((result) => {
       this.launchData = result.data;
     })
     .then(() => {
-      return getLearnerPreferencesFromLMS();
+      return this.getLearnerPreferencesFromLMS();
     })
     .then((result) => {
       this.learnerPreferences = result.data || {};
