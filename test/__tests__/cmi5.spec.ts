@@ -86,6 +86,14 @@ describe("Cmi5", () => {
     });
   });
 
+  describe("constructor with hash", () => {
+    it("parses launch params from window.location.href - url contains a hash", async () => {
+      mockCmi5.mockLocationWithHash();
+      const cmi5 = new Cmi5();
+      expect(cmi5.getLaunchParameters()).toEqual(DEFAULT_LAUNCH_PARAMETERS);
+    });
+  });
+
   describe("isCmiAvailable", () => {
     it("returns false when any required cmi query params are missing from window.location", async () => {
       expect(Cmi5.isCmiAvailable).toBe(false);

@@ -815,7 +815,7 @@ export default class Cmi5 {
 
   private getLaunchParametersFromLMS(): LaunchParameters {
     return XAPI.getSearchQueryParamsAsObject(
-      window.location.href
+      window.location.search
     ) as LaunchParameters;
   }
 
