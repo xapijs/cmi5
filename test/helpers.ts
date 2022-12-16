@@ -111,6 +111,11 @@ export class MockCmi5Helper {
   mockLocation(): void {
     _setWindowLocation(this.url);
   }
+  mockLocationWithHash(): void {
+    const url = new URL(this.url);
+    url.hash = "#this-is-a-hash";
+    _setWindowLocation(url);
+  }
 
   mockFetch(responseStatus = 200): void {
     this.mockAxios.onPost(this.fetch).reply(
