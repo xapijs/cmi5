@@ -1,3 +1,8 @@
+# 1.1.5 (16 Dec 2022)
+
+- Bumped dependencies to remove security warnings
+- Fixed [#208](https://github.com/xapijs/cmi5/issues/208) (Thanks [fmeinhold](https://github.com/fmeinhold)!)
+
 # 1.1.4 (6 Oct 2021)
 
 - Bumped dependencies
