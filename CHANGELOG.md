@@ -1,3 +1,8 @@
+# 1.1.6 (29 Dec 2022)
+
+- Bumped dependencies
+- Aligned with `@xapi/xapi@2.1.2`
+
 # 1.1.5 (16 Dec 2022)
 
 - Bumped dependencies to remove security warnings
