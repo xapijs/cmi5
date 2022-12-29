@@ -43,15 +43,17 @@ function expectActivityStatement(
 ): Partial<Statement> {
   const lps = cmi5.getLaunchParameters();
   return expect.objectContaining({
-    actor: lps.actor,
-    context: expect.objectContaining({
-      registration: lps.registration,
+    statement: expect.objectContaining({
+      actor: lps.actor,
+      context: expect.objectContaining({
+        registration: lps.registration,
+      }),
+      object: expect.objectContaining({
+        id: lps.activityId,
+      }),
+      verb,
+      ...(additionalProps || {}),
     }),
-    object: expect.objectContaining({
-      id: lps.activityId,
-    }),
-    verb,
-    ...(additionalProps || {}),
   });
 }
 

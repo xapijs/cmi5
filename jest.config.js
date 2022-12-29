@@ -1,5 +1,7 @@
 module.exports = {
-  testURL: "http://example.com",
+  testEnvironmentOptions: {
+    url: "http://example.com",
+  },
   transform: {
     ".(ts|tsx)": "ts-jest",
   },
