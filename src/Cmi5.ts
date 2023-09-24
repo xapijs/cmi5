@@ -61,6 +61,7 @@ export default class Cmi5 {
   private learnerPreferences!: LearnerPreferences;
   private static _xapi: XAPI | null = null;
   private initialisedDate!: Date;
+  private authToken: string | null = null;
 
   static get instance(): Cmi5 {
     if (!Cmi5._instance) {
@@ -126,16 +127,31 @@ export default class Cmi5 {
     return this.launchData;
   }
 
+  // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+  public getAuthToken(): string {
+    return this.authToken;
+  }
+
   // 11.0 xAPI Agent Profile Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#110-xapi-agent-profile-data-model
   public getLearnerPreferences(): LearnerPreferences {
     return this.learnerPreferences;
   }
 
   // "cmi5 defined" Statements
-  public initialize(): AxiosPromise<string[]> {
-    return this.getAuthTokenFromLMS(this.launchParameters.fetch)
-      .then((response) => {
-        const authToken: string = response.data["auth-token"];
+  public initialize(authToken?: string): AxiosPromise<string[]> {
+    return Promise.resolve()
+      .then(() => {
+        // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+        if (authToken) return authToken;
+        return this.getAuthTokenFromLMS(this.launchParameters.fetch).then(
+          (response) => {
+            const authToken: string = response.data["auth-token"];
+            return authToken;
+          }
+        );
+      })
+      .then((authToken) => {
+        this.authToken = authToken;
         Cmi5._xapi = new XAPI({
           endpoint: this.launchParameters.endpoint,
           auth: `Basic ${authToken}`,
