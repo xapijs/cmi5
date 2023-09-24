@@ -1,3 +1,10 @@
+# 1.2.0 (24 Sep 2023)
+
+- Added new optional parameter `authToken` to `initialize` (Fixes [https://github.com/xapijs/cmi5/issues/225](#225))
+- Added new method `getAuthToken` (Fixes [https://github.com/xapijs/cmi5/issues/225](#225))
+- Aligned with `@xapi/xapi/2.2.3`
+- Bumped dependencies
+
 # 1.1.6 (29 Dec 2022)
 
 - Bumped dependencies
