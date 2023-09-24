@@ -3,6 +3,7 @@ import MockDate from "mockdate";
 import Cmi5 from "../../src/Cmi5";
 import { Cmi5DefinedVerbs } from "../../src/constants";
 import { MockCmi5Helper, DEFAULT_LAUNCH_PARAMETERS, rmProp } from "../helpers";
+import { AxiosHeaders } from "axios";
 
 const DEFAULT_OBJECTIVE_ACTIVITY: ObjectiveActivity = {
   objectType: "Activity",
@@ -142,6 +143,7 @@ describe("Cmi5", () => {
           status: failStatus,
           config: {
             url: "activities/state",
+            headers: new AxiosHeaders(),
           },
         });
         const cmi5 = Cmi5.instance;
@@ -173,6 +175,7 @@ describe("Cmi5", () => {
           status: failStatus,
           config: {
             url: "activities/profile",
+            headers: new AxiosHeaders(),
           },
         });
         mockCmi5.mockSendStatement();
@@ -194,6 +197,7 @@ describe("Cmi5", () => {
           status: failStatus,
           config: {
             url: "xapi/statements",
+            headers: new AxiosHeaders(),
           },
         });
         let exception;
