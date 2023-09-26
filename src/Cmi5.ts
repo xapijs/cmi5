@@ -60,7 +60,7 @@ export default class Cmi5 {
   private launchData!: LaunchData;
   private learnerPreferences!: LearnerPreferences;
   private static _xapi: XAPI | null = null;
-  private initialisedDate!: Date;
+  private initializedDate!: Date;
   private authToken: string | null = null;
 
   static get instance(): Cmi5 {
@@ -132,17 +132,24 @@ export default class Cmi5 {
     return this.authToken;
   }
 
+  public getInitializedDate(): Date {
+    return this.initializedDate;
+  }
+
   // 11.0 xAPI Agent Profile Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#110-xapi-agent-profile-data-model
   public getLearnerPreferences(): LearnerPreferences {
     return this.learnerPreferences;
   }
 
   // "cmi5 defined" Statements
-  public initialize(authToken?: string): AxiosPromise<string[]> {
+  public initialize(sessionState?: {
+    authToken: string;
+    initializedDate: Date;
+  }): AxiosPromise<string[] | void> {
     return Promise.resolve()
       .then(() => {
         // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-        if (authToken) return authToken;
+        if (sessionState) return sessionState.authToken;
         return this.getAuthTokenFromLMS(this.launchParameters.fetch).then(
           (response) => {
             const authToken: string = response.data["auth-token"];
@@ -168,11 +175,16 @@ export default class Cmi5 {
         this.learnerPreferences = result.data || {};
       })
       .then(() => {
-        this.initialisedDate = new Date();
-        // 9.3.2 Initialized - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#932-initialized
-        return this.sendCmi5DefinedStatement({
-          verb: Cmi5DefinedVerbs.INITIALIZED,
-        });
+        if (sessionState) {
+          // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+          this.initializedDate = sessionState.initializedDate;
+        } else {
+          this.initializedDate = new Date();
+          // 9.3.2 Initialized - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#932-initialized
+          return this.sendCmi5DefinedStatement({
+            verb: Cmi5DefinedVerbs.INITIALIZED,
+          });
+        }
       });
   }
 
@@ -191,7 +203,7 @@ export default class Cmi5 {
           completion: true,
           // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#completed-statement
           duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
+            this.initializedDate,
             new Date()
           ),
         },
@@ -245,7 +257,7 @@ export default class Cmi5 {
           success: true,
           // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#passed-statement
           duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
+            this.initializedDate,
             new Date()
           ),
         },
@@ -297,7 +309,7 @@ export default class Cmi5 {
           success: false,
           // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#failed-statement
           duration: XAPI.calculateISO8601Duration(
-            this.initialisedDate,
+            this.initializedDate,
             new Date()
           ),
         },
@@ -329,7 +341,7 @@ export default class Cmi5 {
       result: {
         // 9.5.4.1 Duration - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#terminated-statement
         duration: XAPI.calculateISO8601Duration(
-          this.initialisedDate,
+          this.initializedDate,
           new Date()
         ),
       },
