@@ -1,3 +1,8 @@
+# 1.3.0 (26 Sep 2023)
+
+- `initialize` no longer sends an `initialized` statement if `sessionState` is provided
+- Added `getInitializedDate` helper method
+
 # 1.2.0 (24 Sep 2023)
 
 - Added new optional parameter `authToken` to `initialize` (Fixes [https://github.com/xapijs/cmi5/issues/225](#225))
