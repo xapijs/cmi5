@@ -1,3 +1,7 @@
+# 1.3.1 (4 Nov 2023)
+
+- Bumped dependencies
+
 # 1.3.0 (26 Sep 2023)
 
 - `initialize` no longer sends an `initialized` statement if `sessionState` is provided
