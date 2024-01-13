@@ -1,26 +1,47 @@
 name: Test
-on: [push, pull_request]
+
+on:
+  push:
+    branches:
+      - "develop"
+  pull_request_target:
+    branches:
+      - "develop"
+
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
         run: npm ci
+
       - name: Run audit
         run: npm run test:audit
-      - name: Run format test
+
+      - name: Prettier
         run: npm run test:format
-      - name: Run Lint
+
+      - name: ESLint
         run: npm run lint
-      - name: Run types test
+
+      - name: Types
         run: npm run test:types
-      - name: Run build test
+
+      - name: Build
         run: npm run build
-      - name: Run tests
+
+      - name: Test
         run: npm run test
-      - name: Coveralls
+
+      - name: Coverage
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
