@@ -704,7 +704,7 @@ function _isObjectiveActivity(x?: unknown): x is ObjectiveActivity {
 }
 
 function _isNumber(n?: number | unknown): n is number {
-  return !isNaN(Number(n));
+  return Number.isFinite(n);
 }
 
 function _isNumericExact(candidate: unknown): candidate is NumericExact {
