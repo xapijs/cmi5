@@ -36,6 +36,21 @@ export function Cmi5DefinedStatement(
   ctx: LaunchContext,
   statement: Partial<Statement>
 ): Statement {
+  // 10.2.2 Launch Mode - Restrict cmi5 defined statements in Browse/Review
+  const verbId = statement.verb?.id || statement.verb;
+  const isTerminated = verbId === Cmi5DefinedVerbs.TERMINATED?.id || verbId === Cmi5DefinedVerbs.TERMINATED;
+  const isInitialized = verbId === Cmi5DefinedVerbs.INITIALIZED?.id || verbId === Cmi5DefinedVerbs.INITIALIZED;
+
+  if (
+    (ctx.launchData.launchMode === "Browse" || ctx.launchData.launchMode === "Review") &&
+    !isTerminated &&
+    !isInitialized
+  ) {
+    throw new Error(
+      "Per CMI-5 Spec 10.2.2, only 'Terminated' and 'Initialized' cmi5 defined statements may be sent in 'Browse' or 'Review' launchMode."
+    );
+  }
+
   // 9.4 Object - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#94-object
   const object: StatementObject = {
     objectType: "Activity",
@@ -119,8 +134,9 @@ export function Cmi5PassStatement(
 ): Statement {
   const masteryScore = ctx.launchData.masteryScore;
   // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
-  if (ctx.launchData.launchMode !== "Normal")
+  if (ctx.launchData.launchMode !== "Normal") {
     throw new Error("Can only send PASSED when launchMode is 'Normal'");
+  }
 
   const rScore = _toResultScore(score);
   // Best Practice #4 - AU Mastery Score - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
